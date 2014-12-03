@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>scalajs-react</title>
+    <script type="text/javascript" src="../target/scala-2.11/rww-scala-js-jsdeps.js"></script>
+    <script type="text/javascript" src="../target/scala-2.11/rww-scala-js-fastopt.js"></script>
+    <style>
+      section {
+        border-top: solid 1px black;
+        margin-top: 2ex;
+      }
+      section {
+        margin: 3ex 1ex;
+        border: solid 1px #111;
+        background: #f9f9f9;
+        padding: 1ex;
+      }
+      section h3 {margin-top:0; color: #227}
+    </style>
+  </head>
+  <body>
+
+    <section><h3>Eg #1</h3><div id="eg1"></div></section>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            rww.ui.foaf.Person().main()
+        }
+    </script>
+  </body>
+</html>
