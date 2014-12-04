@@ -11,6 +11,8 @@ import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
 
 import org.w3.banana
+import org.w3.banana.rdfstore.Store
+import org.w3.banana.rdfstorew.RDFStoreW
 
 object Person extends js.JSApp {
   import rww.rdf._
@@ -39,12 +41,19 @@ object Person extends js.JSApp {
 
   @js.annotation.JSExport
   override def main(): Unit = {
-     val person: PointedGraph[Rdf] = (
-       URI("http://bblfish.net/people/henry/card#me").toPG
-         -- foaf.depiction ->- URI("http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg")
-         -- foaf.depiction ->- URI("http://bblfish.net/pix/bfish.large.jpg")
-       )
+    import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+     val bbl = URI("http://bblfish.net/people/henry/card#me")
+
+     val futureFoaf = rww.rdf.store.getGraph(rww.rdf.jsstore,URI("http://bblfish.net/people/henry/card.ttl"))
+
+//     val person: PointedGraph[Rdf] = (
+//       URI("http://bblfish.net/people/henry/card#me").toPG
+//         -- foaf.depiction ->- URI("http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg")
+//         -- foaf.depiction ->- URI("http://bblfish.net/pix/bfish.large.jpg")
+//       )
     val el = document getElementById "eg1"
-    React.render(component(person),el)
+    futureFoaf.map{ graph=>
+      console.log("graph=",graph.asInstanceOf[js.Any])
+      React.render(component(PointedGraph[Rdf](bbl,graph)),el) }
   }
 }

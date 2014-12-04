@@ -1,8 +1,8 @@
-import org.w3.banana.rdfstorew.{RDFStoreModule, RDFStore}
+import org.w3.banana.rdfstorew.JSStore
 
 
 package object rww  {
 
-  val rdf = RDFStore
+  val rdf = JSStore
 
 }
