@@ -6,12 +6,12 @@ import rww._
 import scala.scalajs.js
 import org.scalajs.dom.{HTMLInputElement, console, document, window, Node}
 
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.{ReactComponentB,_}
 import japgolly.scalajs.react.vdom.ReactVDom._
 import japgolly.scalajs.react.vdom.ReactVDom.all._
 
 import org.w3.banana
-import org.w3.banana.rdfstore.Store
+import org.w3.banana.rdfstore.rjs.Store
 import org.w3.banana.rdfstorew.RDFStoreW
 
 object Person extends js.JSApp {
@@ -25,6 +25,7 @@ object Person extends js.JSApp {
   import banana.diesel._
   import banana.syntax._
 
+
   case class PersonState(personPG: Option[PointedGraph[Rdf]],
                          edit: Boolean = false,
                          editText: String = "Edit")
@@ -37,10 +38,17 @@ object Person extends js.JSApp {
     .initialState(PersonState(None))
     .render((P, S, B) =>
     div(className := "clearfix center")(
-      img(src := (P / foaf.depiction).filter(_.pointer.fold(uri => true, bn => false, lit => false))
-        .headOption.map(_.pointer.toString).getOrElse("img/avatar.png"))
-    )
-    ).build
+      img(src := {
+        val l = (P / foaf.depiction).toList
+        println("xxx=" + l.map(_.pointer))
+        l.filter {
+          p =>
+            println("p.pointer=" + p.pointer)
+            p.pointer.fold(uri => true, bn => false, lit => false)
+        }.headOption.map(_.pointer.toString).getOrElse("img/avatar.png")
+      }
+      )
+    )).build
 
   @js.annotation.JSExport
   override def main(): Unit = {
@@ -51,30 +59,41 @@ object Person extends js.JSApp {
     //do a request on the internet to get the file for the above url
     val bblDoc =
       """
-        |@prefix foaf: <http://xmlns.com/foaf/0.1/>    .
-        |@base  <http://bblfish.net/people/henry/card> .
+        |@prefix foaf: <http://xmlns.com/foaf/0.1/>   .
+        |@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
         |
         |<#me> foaf:depiction <http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg>,
-        |      <http://bblfish.net/pix/bfish.large.jpg> .
+        |                     <http://bblfish.net/pix/bfish.large.jpg> ;
+        |      foaf:name "Henry";
+        |      foaf:age "42"^^xsd:int ;
+        |      foaf:near "England"@en .
         |
       """.stripMargin
 
     import rww.rdf.store._
 
+    val el = document getElementById "eg1"
+
+
     //parse document above with Readers to get graph below
 
-    val  myGraph = (
-       URI("http://bblfish.net/people/henry/card#me").toPG
-         -- foaf.depiction ->- URI("http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg")
-         -- foaf.depiction ->- URI("http://bblfish.net/pix/bfish.large.jpg")
-       ).graph
-    val el = document getElementById "eg1"
-    for {
-      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, myGraph) //add to store
-      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //remove from store
+//    val  graph = (
+//       bbl.toPG
+//         -- foaf.depiction ->- URI("http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg")
+//         -- foaf.depiction ->- URI("http://bblfish.net/pix/bfish.large.jpg")
+//       ).graph
+//    val strFuture = rww.rdf.turtleWriter.asString(graph,"")
+//    strFuture.map(str=>println("~ZZ~>"+str))
+//    React.render(component(PointedGraph[Rdf](bbl, graph)), el)
+
+    val f = for {
+      g <- turtleReader.read(toReader(bblDoc),"http://bblfish.net/people/henry/card")
+//      x = {console.log("g=",g.asInstanceOf[js.Any])}
+//      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
+//      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
     } yield {
-      console.log("graph=", graph.asInstanceOf[js.Any])
-      React.render(component(PointedGraph[Rdf](bbl, graph)), el)
+      React.render(component(PointedGraph[Rdf](URI("#me"), g)), el)
     }
+    f.value
   }
 }
