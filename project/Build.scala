@@ -49,7 +49,8 @@ object ScalajsReact extends Build {
         "com.github.japgolly.scalajs-react" %%% "core" % "0.6.0",
         "com.github.japgolly.scalajs-react" %%% "test" % "0.6.0" % "test",
         "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.6.0",
-        "org.w3" %%% "rdfstorew" % "0.7.1-SNAPSHOT"
+        "org.w3" %%% "plantain_js" % "0.7.2-SNAPSHOT",
+        "org.w3" %%% "ntriples_js" % "0.7.2-SNAPSHOT"
 
         //"org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.7-SNAPSHOT",
         //"org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6",

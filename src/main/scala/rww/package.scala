@@ -1,12 +1,9 @@
-import org.w3.banana.rdfstorew.JSStore
+import org.w3.banana.plantain.Plantain
 
 
 package object rww  {
 
-  val rdf = JSStore
-
-  implicit def toReader(string: String): java.io.Reader =
-    new org.w3.banana.rdfstorew.StringReader(string)
+  val rdf = Plantain
 
 
 }
