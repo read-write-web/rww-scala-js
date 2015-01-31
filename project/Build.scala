@@ -42,7 +42,7 @@ object ScalajsReact extends Build {
     .enablePlugins(ScalaJSPlugin)
     .settings(
       name := "rww-scala-js",
-//      jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React",
+      jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React",
       libraryDependencies ++= Seq(
         "com.github.japgolly.scalajs-react" %%% "core" % "0.7.2-RC1",
         "com.github.japgolly.scalajs-react" %%% "test" % "0.7.2-RC1" % "test",
