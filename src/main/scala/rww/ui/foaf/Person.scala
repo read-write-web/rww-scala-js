@@ -1,5 +1,6 @@
 package rww.ui.foaf
 
+import java.io.StringReader
 import java.net.{URI => jURI}
 
 import japgolly.scalajs.react.vdom.all._
@@ -50,14 +51,14 @@ object Person extends js.JSApp {
 
   @js.annotation.JSExport
   override def main(): Unit = {
-    example1()
+    example2()
   }
 
   val bbl = URI("http://bblfish.net/people/henry/card#me")
   val bblDocUri = bbl.fragmentLess
 
   //start with a locally built graph, find picture
-  def example1() = {
+  def example() = {
     val graph = (
       bbl -- foaf.depiction ->- "hello"
         -- foaf.depiction ->- URI("http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg")
@@ -68,32 +69,35 @@ object Person extends js.JSApp {
 
   //parse graph from string then show picture
   def example2() = {
-    //do a request on the internet to get the file for the above url
-//    val foaf = "http://xmlns.com/foaf/0.1/"
-//    val xsd = "http://www.w3.org/2001/XMLSchema#"
-//    val base = bblDocUri.toString
-//    val bblDoc =
-//      s"""
-//        |<$base#me> ${foaf}depiction <http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg>.
-//        |<$base#me> ${foaf}depiction <http://bblfish.net/pix/bfish.large.jpg> .
-//        |<$base#me> ${foaf}name "Henry".
-//        |<$base#me> ${foaf}age "42"^^xsd:int .
-//        |<$base#me> ${foaf}near "England"@en .
-//      """.stripMargin
-//
-//
-//    //parse document above with Readers to get graph below
-//
-//    val f = for {
-//      g <- Plantain.ntriplesReader.read(new StringReader(bblDoc),bblDocUri.toString)
-//    // the following would be required, where it not that here reading already added the
-//    // graph to the store, but that needs to be fixed, by allowing also parsers to be
-//    // streaming
-//    //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
-//    //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
-//    } yield {
-//      React.render(component(PointedGraph[Rdf](URI("#me"), g)), el)
-//    }
+   // do a request on the internet to get the file for the above url
+    val foaf = "http://xmlns.com/foaf/0.1/"
+    val xsd = "http://www.w3.org/2001/XMLSchema#"
+    val base = bblDocUri.toString
+    val bblDoc =
+      s"""<$base#me> <${foaf}depiction> <http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg> .
+        |<$base#me> <${foaf}depiction> <http://bblfish.net/pix/bfish.large.jpg> .
+        |<$base#me> <${foaf}name> "Henry" .
+        |<$base#me> <${foaf}age> "42"^^<${xsd}int> .
+        |<$base#me> <${foaf}near> "England"@en .
+        |""".stripMargin
+
+    println(bblDoc)
+
+
+    //parse document above with Readers to get graph below
+
+    val f = for {
+      g <- Plantain.ntriplesReader.read(new StringReader(bblDoc),bblDocUri.toString)
+    // the following would be required, where it not that here reading already added the
+    // graph to the store, but that needs to be fixed, by allowing also parsers to be
+    // streaming
+    //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
+    //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
+    } yield {
+      println(g)
+      React.render(component(PointedGraph[Rdf](URI(base+"#me"), g)), el)
+    }
+    f.get
   }
 
 //  def example3() = {
