@@ -11,6 +11,7 @@ import org.w3.banana.binder.ToPG
 import org.w3.banana.plantain.Plantain
 
 import scala.scalajs.js
+import scala.scalajs.js.Date
 import scala.util.{Failure, Success}
 
 object Person extends js.JSApp {
@@ -93,7 +94,7 @@ object Person extends js.JSApp {
     //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
     //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
     } yield {
-      React.render(component(PointedGraph[Rdf](URI(base+"#me"), g)), el)
+      React.render(component(PointedGraph[Rdf](bbl, g)), el)
     }
     f.get
   }
@@ -102,6 +103,7 @@ object Person extends js.JSApp {
 
   // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
   import org.scalajs.dom.extensions._
+
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
   //and for CORS see http://www.html5rocks.com/en/tutorials/cors/
@@ -112,8 +114,22 @@ object Person extends js.JSApp {
     //todo: to be verified
 
     println(s"getting ${bblDocUri}")
-    Ajax.get(bblDocUri.toString).onComplete {
-      case Success(xhr) => println(xhr.responseText)
+    Ajax.get(bblDocUri.toString,headers=Map("Accept"->"application/n-triples")).onComplete {
+      case Success(xhr) => {
+        val start = new Date()
+        println("starting to parse"+start.toLocaleTimeString())
+        for {
+          g <- Plantain.ntriplesReader.read(new StringReader(xhr.responseText),bblDocUri.toString)
+        // one should then later also add the graph to a store
+        //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
+        //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
+        } yield {
+          val end = new Date()
+          println("ending parse. Time taken (in ms) "+(end.getTime() - start.getTime()))
+          React.render(component(PointedGraph[Rdf](bbl, g)), el)
+        }
+      }
+
       case Failure(f) => println("error: " + f)
     }
 
