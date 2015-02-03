@@ -11,6 +11,7 @@ import org.w3.banana.binder.ToPG
 import org.w3.banana.plantain.Plantain
 
 import scala.scalajs.js
+import scala.util.{Failure, Success}
 
 object Person extends js.JSApp {
   type Rdf = Plantain
@@ -51,7 +52,7 @@ object Person extends js.JSApp {
 
   @js.annotation.JSExport
   override def main(): Unit = {
-    example2()
+    example3()
   }
 
   val bbl = URI("http://bblfish.net/people/henry/card#me")
@@ -88,23 +89,34 @@ object Person extends js.JSApp {
 
     val f = for {
       g <- Plantain.ntriplesReader.read(new StringReader(bblDoc),bblDocUri.toString)
-    // the following would be required, where it not that here reading already added the
-    // graph to the store, but that needs to be fixed, by allowing also parsers to be
-    // streaming
+    // one should then later also add the graph to a store
     //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
     //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
     } yield {
-      println(g)
       React.render(component(PointedGraph[Rdf](URI(base+"#me"), g)), el)
     }
     f.get
   }
 
-//  def example3() = {
-//    import JSStore._
-//    //the run-now execution context should be fine as the two methods below work with callbacks
-//    //that presumably uses javascripts task queue (
-//    //todo: to be verified
+
+
+  // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
+  import org.scalajs.dom.extensions._
+  import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+
+  //and for CORS see http://www.html5rocks.com/en/tutorials/cors/
+
+  def example3() = {
+    //the run-now execution context should be fine as the two methods below work with callbacks
+    //that presumably uses javascripts task queue (
+    //todo: to be verified
+
+    println(s"getting ${bblDocUri}")
+    Ajax.get(bblDocUri.toString).onComplete {
+      case Success(xhr) => println(xhr.responseText)
+      case Failure(f) => println("error: " + f)
+    }
+
 //    import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 //    for {
 //      i <- rdfstoreOps.loadRemote(jsstore, bblDocUri)
@@ -112,5 +124,5 @@ object Person extends js.JSApp {
 //    } yield {
 //      React.render(component(PointedGraph[Rdf](bbl, g)), el)
 //    }
-//  }
+  }
 }
