@@ -1,0 +1,271 @@
+/* ------------------------------- */
+/* COLORS */
+
+/* DARK GREY: #24221f */
+/* MEDIUM GREY: #938b7f */
+/* LIGHT GREY: #E2E2E2 */
+/* RED: #b80b5b */
+/* BLUE: #3fabd3 */
+/* GREEN: #0bb988 */
+/* ORANGE: #FF793A */
+/* BROWN: #938b7f */
+
+
+@import url(http://weloveiconfonts.com/api/?family=fontawesome);
+
+/* fontawesome */
+[class*="fontawesome-"]:before {
+	font-family: 'FontAwesome', sans-serif;
+}
+
+html {
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	background: #EDEDED;
+	width: 100%;
+	height: 100%;
+	font-family: "Noto Sans", sans-serif;
+}
+
+.clearfix:before, .clearfix:after { content: ""; display: table; }
+.clearfix:after { clear: both; }
+.clearfix { zoom: 1; }
+
+a, a:visited {
+	text-decoration: none;
+	color: #3fabd3;
+}
+
+.hide {
+	display: none;
+}
+
+#search {
+	width: 800px;
+	height: 60px;
+	background: white;
+	box-shadow: 6px 6px rgba(0, 0, 0, 0.2);
+	margin: 40px auto;
+	border: 10px solid #e3e3e3;
+}
+
+#add {
+	font-weight: bold;
+	height: 60px;
+	width: 60px;
+	text-align: center;
+	line-height: 60px;
+	background: #333333;
+	color: white;
+	font-size: 50px;
+	float: left;
+	cursor: pointer;
+	transition: all 0.2s;
+	-moz-transition: all 0.2s;
+	-webkit-transition: all 0.2s;
+}
+
+#add:hover {
+	background: #3fabd3;
+}
+
+#search input[type="text"] {
+	height: 60px;
+	width: 680px;
+	border: 0;
+	box-shadow: none;
+	padding: 20px;
+	box-sizing: border-box;
+	outline: none;
+	font-family: "Noto Sans", sans-serif;
+	font-size: 20px;
+	float: left;
+}
+
+#search input[type="text"]:focus {
+	box-shadow: none;
+	outline: none;
+
+ }
+
+#search button[type="submit"] {
+	height: 60px;
+	width: 60px;
+	text-align: center;
+	line-height: 60px;
+	background: #333333;
+	color: white;
+	font-size: 30px;
+	float: right;
+	border: none;
+	cursor: pointer;
+	transition: all 0.2s;
+	-moz-transition: all 0.2s;
+	-webkit-transition: all 0.2s;
+}
+
+#search button[type="submit"]:hover {
+	box-shadow: none;
+	outline: none;
+	background: #0bb988;
+
+}
+
+#actionNeeded {
+	width: 800px;
+	background: #b80b5b;
+	color: white;
+	font-weight: bold;
+	text-transform: uppercase;
+	text-align: center;
+	padding: 10px;
+	box-sizing: border-box;
+	margin: 0 auto 20px;
+}
+
+.contacts {
+	width: 800px;
+	margin: 0 auto;
+}
+
+.contacts ul {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+.contacts li {
+	position: relative;
+	font-size: 10px;
+	float: left;
+	width: 32%;
+	height: 220px;
+	background: white;
+	margin: 0 2% 2% 0;
+	box-sizing: border-box;
+	box-shadow: 6px 6px rgba(0, 0, 0, 0.2);
+	list-style-type: none;
+}
+
+.contacts li:nth-child(3n + 3) {
+	margin: 0 0 2% 0;
+}
+
+.loading {
+	opacity: 0.4;
+}
+
+.error {
+	background: rgb(255, 230, 230) !important;
+}
+
+.name {
+	font-weight: bold;
+	font-size: 18px;
+	text-transform: uppercase;
+	margin: 10px 10px 0;
+}
+
+.surname {
+	font-weight: bold;
+	font-size: 14px;
+	text-transform: uppercase;
+	margin: 0 10px 0;
+}
+
+.company {
+	margin: 2px 10px 0;
+	font-size: 12px;
+	color: #bfbfbf;
+}
+
+.moreInfo {
+	clear: both;
+	margin: 45px 10px 0;
+	color: #e2e2e2;
+}
+
+.contact:hover .moreInfo {
+	color: black;
+}
+
+.contact a,
+.contact a:visited {
+	color: #e2e2e2;
+}
+
+.contact:hover a,
+.contact:hover a:visited {
+	color: #3fabd3;
+}
+
+.lastInteraction {
+	text-align: center;
+	margin-bottom: 10px;
+}
+
+.lastInteraction span {
+	font-weight: bold;
+}
+
+.message {
+	font-style: italic;
+	padding: 7px 10px;
+	margin: 5px 0;
+	background: #f8f8f8;
+
+}
+
+.contact:hover .message {
+	background: #fffdcb;
+}
+
+.nextStep {
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	text-align: right;
+}
+
+.picture {
+	margin: 10px;
+	float: right;
+	width: 92px;
+}
+
+.picture img {
+	width: 100%;
+	height: auto;
+}
+
+.recentInteractions,
+.newMessages,
+.updates {
+	float: left;
+	text-align: center;
+	width: 21px;
+	height: 21px;
+	line-height: 20px;
+	border-radius: 11px;
+	color: white;
+	margin: 8px 0 10px 10px;
+}
+
+.newMessages {
+	background: #b80b5b;
+}
+
+.recentInteractions {
+	background: #0bb988;
+}
+
+.updates {
+	background: #3fabd3;
+}
+
+
+
+
