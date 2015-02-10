@@ -6,32 +6,25 @@ import japgolly.scalajs.react.{ ReactComponentB, _ }
 import org.w3.banana._
 import org.w3.banana.plantain.Plantain.ops._
 import org.w3.banana.plantain.Plantain
+import rww.ui.Util
+
+case class PersonState(personPG: Option[PointedGraph[Plantain]],
+                       edit: Boolean = false,
+                       editText: String = "Edit")
 
 object Person {
-  val foaf = FOAFPrefix[Rdf]
-  type Rdf = Plantain
-  //  implicit val ops = Plantain.ops
-  case class PersonState(personPG: Option[PointedGraph[Rdf]],
-                         edit: Boolean = false,
-                         editText: String = "Edit")
 
-  private val c = ReactComponentB[PointedGraph[Rdf]]("Person")
+  def apply(props: PersonProps) = Person(props)
+
+  private val Person = ReactComponentB[PersonProps]("Person")
     .initialState(PersonState(None))
-    .render((P, S, B) => div(className := "clearfix center")(
-      img(src := {
-        val l = (P / foaf.depiction).toList
-        println("xxx=" + l.map(_.pointer))
-        val link = l.map(_.pointer).collectFirst {
-          case URI(uri) => uri
-        }.getOrElse("static/avatar-man.png")
-        println(link)
-        link
-      }))).build
-
-  /**
-   * Generate a ReactComponentU from a person graph. The component can then be mounted to an HTMLElement
-   */
-  def component(pg: PointedGraph[Rdf]): ReactComponentU[PointedGraph[Plantain], PersonState, Unit, HTMLElement] = c(pg)
+    .render((P, PC, S) => div(className := "clearfix center")(
+      div(className := "edit-profile") {
+        S.editText
+      },
+      Pix(PixProps(Util.getFirstUri(P, FOAF.depiction, "static/avatar-man.png"))),
+      PersonBasicInfo(P)))
+    .build
 
   /*
    Structure from react-foaf (https://github.com/read-write-web/react-foaf)
@@ -59,6 +52,12 @@ object Person {
                                 onRemoveContact={this.props.onRemoveContact}
                             />
                         </div>
+                        
+    ##########Pix############################
+                <div className="picture">
+                    {this.transferPropsTo(<img/>)}
+                </div>
+    
 
     ###########PersonBasicInfo#####################
             var viewTree;

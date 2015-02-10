@@ -24,7 +24,7 @@ object AppStarter extends JSApp {
       // one should then later also add the graph to a store
       //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
       //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
-    } yield React.render(Person.component(PointedGraph[Plantain](profileUri, g)), mountPoint)
+    } yield React.render(Person(PointedGraph[Plantain](profileUri, g)), mountPoint)
   }
 
   val failure: Plantain#URI => Throwable => Unit = docUri => t => {
