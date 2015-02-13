@@ -8,62 +8,39 @@ import rww.ui.Util
 
 object PersonBasicInfo {
 
-  def apply(props: PersonProps, state: PersonState) = PersonBasicInfo((props, state))
+  def apply(props: PersonProps, state: PersonState, backend: PersonBackend) = PersonBasicInfo((props, state, backend))
 
-  private val PersonBasicInfo = ReactComponentB[(PersonProps, PersonState)]("PersonBasicInfo")
-    //    .initialState(PersonState(None))
+  def drawInfo(graph: PersonProps, edit: Boolean, backend: PersonBackend) = {
+    div(className := "basic") {
+      val name = Util.getFirstLiteral(graph, FOAF.name, "(name missing)").toString
+      val givenname = Util.getFirstLiteral(graph, FOAF.givenname, "(givenname missing)").toString
+      val company = Util.getFirstUri(graph, FOAF.workplaceHomepage, "workplaceHomepage missing")
+
+      if (!edit) {
+        div(className := "name title-case")(name) ::
+          div(className := "surname title-case")(givenname) ::
+          div(className := "company")(company) ::
+          Nil
+      } else {
+        div(className := "name title-case")(form(onSubmit ==> backend.handleSubmit)(input(tpe := "text", placeholder := "Enter name", onChange ==> backend.onTextChange(FOAF.name)(Literal(_)), value := name))) ::
+          div(className := "surname title-case")(form(onSubmit ==> backend.handleSubmit)(input(tpe := "text", placeholder := "Enter givenname", onChange ==> backend.onTextChange(FOAF.givenname)(Literal(_)), value := givenname))) ::
+          div(className := "company")(form(onSubmit ==> backend.handleSubmit)(input(tpe := "text", placeholder := "Enter company website", onChange ==> backend.onTextChange(FOAF.workplaceHomepage)(URI(_)), value := company))) ::
+          Nil
+      }
+    }
+  }
+
+  private val PersonBasicInfo = ReactComponentB[(PersonProps, PersonState, PersonBackend)]("PersonBasicInfo")
     .render(P => {
       div(className := "basic") {
-        val (graph: PersonProps, state: PersonState) = P
-        //    .render((P, C, S) => div(className := "basic") {
-        val name = Util.getFirstLiteral(graph, FOAF.name, "(name missing)").toString
-        val givenname = Util.getFirstLiteral(graph, FOAF.givenname, "(givenname missing)").toString
-        val company = Util.getFirstUri(graph, FOAF.workplaceHomepage, "workplaceHomepage missing")
 
-        if (!state.edit) {
-          div(className := "name title-case")(name) ::
-            div(className := "surname title-case")(givenname) ::
-            div(className := "company")(company) ::
-            Nil
-        } else {
-          div(className := "name title-case")(form()(input(tpe := "text", placeholder := "Enter name", value := name))) ::
-            div(className := "surname title-case")(form()(input(tpe := "text", placeholder := "Enter givenname", value := givenname))) ::
-            div(className := "company")(form()(input(tpe := "text", placeholder := "Enter company website", value := company))) ::
-            Nil
+        val (props: PersonProps, state: PersonState, backend: PersonBackend) = P
+
+        // First time load graph from props- subsequent times load it from state
+        state.personPG match {
+          case None        => drawInfo(props, state.edit, backend)
+          case Some(graph) => drawInfo(graph, state.edit, backend)
         }
       }
     }).build
-
-  /*
-                var viewTree;
-        if (!this.props.modeEdit) {
-            viewTree =
-            <div className="basic">
-                <div className="name title-case" title={info["foaf:name"]}>{info["foaf:name"]}</div>
-                <div className="surname title-case" title={info["foaf:givenname"]}>{info["foaf:givenname"]}</div>
-                <div className="company"  title={info["foaf:workplaceHomepage"]}>{info["foaf:workplaceHomepage"]}</div>
-            </div>
-        }
-        else {
-            viewTree =
-            <div className="basic">
-                <div className="name title-case">
-                    <form onSubmit={this._handleSubmit}>
-                        <input type="text" placeholder="Enter name"  valueLink={this.linkToPgLiteral(personPG, 'foaf:name')} />
-                    </form>
-                </div>
-                <div className="surname title-case">
-                    <form onSubmit={this._handleSubmit}>
-                        <input type="text" placeholder="Enter givenname" valueLink={this.linkToPgLiteral(personPG, 'foaf:givenname')} />
-                    </form>
-                </div>
-                <div className="company">
-                    <form onSubmit={this._handleSubmit}>
-                        <input type="text" placeholder="Enter company website" valueLink={this.linkToPgLiteral(personPG, 'foaf:workplaceHomepage')} />
-                    </form>
-                </div>
-            </div>
-        }
-        
-        */
 }

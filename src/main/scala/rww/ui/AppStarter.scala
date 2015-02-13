@@ -44,7 +44,6 @@ object AppStarter extends JSApp {
     val successF = success(foafUri)(content)
     val failureF = failure(foafUri)
     val onComplete = WebClient.generateOnComplete(foafUri.fragmentLess)(successF, failureF)
-
     WebClient.getRemoteProfile(foafUri).onComplete(onComplete)
   }
 }

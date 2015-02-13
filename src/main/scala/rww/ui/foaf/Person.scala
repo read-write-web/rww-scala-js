@@ -15,13 +15,29 @@ case class PersonState(personPG: Option[PointedGraph[Plantain]],
                        editText: String = "Edit")
                        
 class PersonBackend($: BackendScope[PersonProps, PersonState]) {
-//  def onSubmitEdition(e: ReactEventI) = 
-//    ???
-  def onChangeModeEdit() = {
+  
+  def handleSubmit(e: ReactEventI) = {
+    e.preventDefault()
+    println(js.JSON.stringify($._state))
+    saveGraph($._state)
+  }
+  
+  def saveGraph(graph: PersonState) =
+    ???
+    
+  def onTextChange(matcher: Plantain#URI)(f: String => Plantain#Node)(e: ReactEventI) = {
+    $.modState(s => {
+      val newPg = Util.getModifiedCopy(s.personPG, matcher, f(e.target.value))
+      PersonState(Option(newPg).get, s.edit, s.editText) // TODO: Consider edge case where newPG is None
+    })
+    val a = Util.getFirstLiteral($.state.personPG.get, FOAF.name, "").toString
+    println(js.JSON.stringify(a))
+  }
+  
+  def onClickEditSave() = {
     println(js.JSON.stringify($._state))
     $.modState(s => PersonState(Option($._props), !s.edit, if (!s.edit) "Save" else "Edit"))
   }
-//    global.alert("Pressed edit button")
 }
 
 object Person {
@@ -32,11 +48,11 @@ object Person {
     .initialState(PersonState(None))
     .backend(new PersonBackend(_))
     .render((P: PersonProps, S: PersonState, B: PersonBackend) => div(className := "clearfix center")(
-      div(className := "edit-profile", onClick --> B.onChangeModeEdit) {
+      div(className := "edit-profile", onClick --> B.onClickEditSave) {
         S.editText
       },
       Pix(PixProps(Util.getFirstUri(P, FOAF.depiction, "static/avatar-man.png"))),
-      PersonBasicInfo(P, S)))
+      PersonBasicInfo(P, S, B)))
     .build
     
   
