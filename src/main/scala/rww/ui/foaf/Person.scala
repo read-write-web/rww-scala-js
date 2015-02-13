@@ -9,33 +9,35 @@ import org.w3.banana._
 import org.w3.banana.plantain.Plantain.ops._
 import org.w3.banana.plantain.Plantain
 import rww.ui.Util
+import rww.ui.WebClient
 
 case class PersonState(personPG: Option[PointedGraph[Plantain]],
                        edit: Boolean = false,
                        editText: String = "Edit")
-                       
+
 class PersonBackend($: BackendScope[PersonProps, PersonState]) {
-  
+
   def handleSubmit(e: ReactEventI) = {
     e.preventDefault()
-    println(js.JSON.stringify($._state))
     saveGraph($._state)
   }
-  
-  def saveGraph(graph: PersonState) =
-    ???
-    
+
+  def saveGraph(state: PersonState) = {
+    // PUT the resource to LDP server and persist it to Plantain
+    //NB: passed as an implicit parameter to WebClient.getRemoteProfile
+    import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+    WebClient.putProfile(state.personPG.get)
+  }
+
   def onTextChange(matcher: Plantain#URI)(f: String => Plantain#Node)(e: ReactEventI) = {
     $.modState(s => {
       val newPg = Util.getModifiedCopy(s.personPG, matcher, f(e.target.value))
       PersonState(Option(newPg).get, s.edit, s.editText) // TODO: Consider edge case where newPG is None
     })
     val a = Util.getFirstLiteral($.state.personPG.get, FOAF.name, "").toString
-    println(js.JSON.stringify(a))
   }
-  
+
   def onClickEditSave() = {
-    println(js.JSON.stringify($._state))
     $.modState(s => PersonState(Option($._props), !s.edit, if (!s.edit) "Save" else "Edit"))
   }
 }
@@ -54,8 +56,6 @@ object Person {
       Pix(PixProps(Util.getFirstUri(P, FOAF.depiction, "static/avatar-man.png"))),
       PersonBasicInfo(P, S, B)))
     .build
-    
-  
 
   /*
    Structure from react-foaf (https://github.com/read-write-web/react-foaf)
