@@ -1,6 +1,8 @@
 package rww.ui.foaf
 
 import japgolly.scalajs.react.vdom.all._
+import scala.scalajs.js
+import scala.scalajs.js.Dynamic.global
 import org.scalajs.dom._
 import japgolly.scalajs.react.{ ReactComponentB, _ }
 import org.w3.banana._
@@ -11,6 +13,16 @@ import rww.ui.Util
 case class PersonState(personPG: Option[PointedGraph[Plantain]],
                        edit: Boolean = false,
                        editText: String = "Edit")
+                       
+class PersonBackend($: BackendScope[PersonProps, PersonState]) {
+//  def onSubmitEdition(e: ReactEventI) = 
+//    ???
+  def onChangeModeEdit() = {
+    println(js.JSON.stringify($._state))
+    $.modState(s => PersonState(Option($._props), !s.edit, if (!s.edit) "Save" else "Edit"))
+  }
+//    global.alert("Pressed edit button")
+}
 
 object Person {
 
@@ -18,17 +30,39 @@ object Person {
 
   private val Person = ReactComponentB[PersonProps]("Person")
     .initialState(PersonState(None))
-    .render((P, PC, S) => div(className := "clearfix center")(
-      div(className := "edit-profile") {
+    .backend(new PersonBackend(_))
+    .render((P: PersonProps, S: PersonState, B: PersonBackend) => div(className := "clearfix center")(
+      div(className := "edit-profile", onClick --> B.onChangeModeEdit) {
         S.editText
       },
       Pix(PixProps(Util.getFirstUri(P, FOAF.depiction, "static/avatar-man.png"))),
-      PersonBasicInfo(P)))
+      PersonBasicInfo(P, S)))
     .build
+    
+  
 
   /*
    Structure from react-foaf (https://github.com/read-write-web/react-foaf)
-  
+   
+                  if (!this.state.modeEdit) {
+                    var content = <Person
+                    personPG={currentTab.personPG}
+                    currentUserPG={this.state.personPG}
+                    modeEdit={this.state.modeEdit}
+                    submitEdition={this._submitEdition}
+                    onContactSelected={this._loadOrMaximizeUserProfileFromUrl}
+                    onAddContact={this._addContact}
+                    onRemoveContact={this._removeContact}
+                    handleClickChangeModeEdit={this._handleClickChangeModeEdit}/>
+                } else {
+                    var content = <Person
+                    currentUserPG={this.state.personPG}
+                    personPG={this.state.personPGDeepCopy}
+                    modeEdit={this.state.modeEdit}
+                    submitEdition={this._submitEdition}
+                    onContactSelected={this._loadOrMaximizeUserProfileFromUrl}
+                    handleClickChangeModeEdit={this._handleClickChangeModeEdit}/>
+                }
   #############Person (top entity) ############
    <div id="profile" className="clearfix center">
                             <div className="edit-profile" onClick={this._handleClickEditButton}>{this.state.editText}</div>

@@ -8,31 +8,31 @@ import rww.ui.Util
 
 object PersonBasicInfo {
 
-  def apply(props: PersonProps) = PersonBasicInfo(props)
-    
-  private val PersonBasicInfo = ReactComponentB[PersonProps]("PersonBasicInfo")
-    .initialState(PersonState(None))
-    .render((P, C, S) => div(className := "basic") {
-      val name = Util.getFirstLiteral(P, FOAF.name, "(name missing)").toString
-      val givenname = Util.getFirstLiteral(P, FOAF.givenname, "(givenname missing)").toString
-      val company = Util.getFirstUri(P, FOAF.workplaceHomepage, "workplaceHomepage missing")
-      
-      if (!S.edit) {
+  def apply(props: PersonProps, state: PersonState) = PersonBasicInfo((props, state))
+
+  private val PersonBasicInfo = ReactComponentB[(PersonProps, PersonState)]("PersonBasicInfo")
+    //    .initialState(PersonState(None))
+    .render(P => {
+      div(className := "basic") {
+        val (graph: PersonProps, state: PersonState) = P
+        //    .render((P, C, S) => div(className := "basic") {
+        val name = Util.getFirstLiteral(graph, FOAF.name, "(name missing)").toString
+        val givenname = Util.getFirstLiteral(graph, FOAF.givenname, "(givenname missing)").toString
+        val company = Util.getFirstUri(graph, FOAF.workplaceHomepage, "workplaceHomepage missing")
+
+        if (!state.edit) {
           div(className := "name title-case")(name) ::
-          div(className := "surname title-case")(givenname) ::
-          div(className := "company")(company) ::
-          Nil
-      } else {
+            div(className := "surname title-case")(givenname) ::
+            div(className := "company")(company) ::
+            Nil
+        } else {
           div(className := "name title-case")(form()(input(tpe := "text", placeholder := "Enter name", value := name))) ::
-          div(className := "surname title-case")(form()(input(tpe := "text", placeholder := "Enter givenname", value := givenname))) ::
-          div(className := "company")(form()(input(tpe := "text", placeholder := "Enter company website", value := company))) ::
-          Nil
+            div(className := "surname title-case")(form()(input(tpe := "text", placeholder := "Enter givenname", value := givenname))) ::
+            div(className := "company")(form()(input(tpe := "text", placeholder := "Enter company website", value := company))) ::
+            Nil
+        }
       }
     }).build
-    
-    
-    
-    
 
   /*
                 var viewTree;
