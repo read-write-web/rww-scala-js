@@ -32,9 +32,9 @@ class PersonBackend($: BackendScope[PersonProps, PersonState]) {
   def onTextChange(matcher: Plantain#URI)(f: String => Plantain#Node)(e: ReactEventI) = {
     $.modState(s => {
       val newPg = Util.getModifiedCopy(s.personPG, matcher, f(e.target.value))
-      PersonState(Option(newPg).get, s.edit, s.editText) // TODO: Consider edge case where newPG is None
+      PersonState(newPg, s.edit, s.editText)
     })
-    val a = Util.getFirstLiteral($.state.personPG.get, FOAF.name, "").toString
+//    val a = Util.getFirstLiteral($.state.personPG, FOAF.name).toString
   }
 
   def onClickEditSave() = {
@@ -53,7 +53,7 @@ object Person {
       div(className := "edit-profile", onClick --> B.onClickEditSave) {
         S.editText
       },
-      Pix(PixProps(Util.getFirstUri(P, FOAF.depiction, "static/avatar-man.png"))),
+      Pix(PixProps(Util.getFirstUri(Some(P), FOAF.depiction))),
       PersonBasicInfo(P, S, B)))
     .build
 

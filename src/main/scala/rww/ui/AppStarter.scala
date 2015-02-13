@@ -24,7 +24,7 @@ object AppStarter extends JSApp {
 
   def main = {
     val f = WebClient.getProfile(foafUri)
-    f.onSuccess({ case g => React.render(Person(g), content) })
+    f.onSuccess({ case g => println("Success" + g.pointer.toString()); React.render(Person(g), content) })
     f.onFailure({ case t => println("error:" + t.getStackTrace) })
   }
 }

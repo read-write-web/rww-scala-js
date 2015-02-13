@@ -12,9 +12,9 @@ object PersonBasicInfo {
 
   def drawInfo(graph: PersonProps, edit: Boolean, backend: PersonBackend) = {
     div(className := "basic") {
-      val name = Util.getFirstLiteral(graph, FOAF.name, "(name missing)").toString
-      val givenname = Util.getFirstLiteral(graph, FOAF.givenname, "(givenname missing)").toString
-      val company = Util.getFirstUri(graph, FOAF.workplaceHomepage, "workplaceHomepage missing")
+      val name = Util.getFirstLiteral(Some(graph), FOAF.name) getOrElse Literal("(name missing)") match { case Literal((v, _, _)) => v }
+      val givenname = Util.getFirstLiteral(Some(graph), FOAF.givenname) getOrElse Literal("(givenname missing)") match { case Literal((v, _, _)) => v }
+      val company = Util.getFirstUri(Some(graph), FOAF.workplaceHomepage) getOrElse "workplaceHomepage missing" toString
 
       if (!edit) {
         div(className := "name title-case")(name) ::
