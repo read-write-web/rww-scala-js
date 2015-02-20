@@ -1,15 +1,15 @@
 package rww.ui
 
-import scala.util.{ Failure, Success }
+import java.io.{ByteArrayOutputStream, StringReader}
+
+import org.scalajs.dom._
+import org.scalajs.dom.ext._
 import org.w3.banana._
 import org.w3.banana.plantain.Plantain
 import org.w3.banana.plantain.Plantain.ops._
-import org.scalajs.dom.extensions._
-import org.scalajs.dom._
-import scala.scalajs.concurrent.JSExecutionContext
+
 import scala.concurrent._
-import org.w3.banana.io.NTriplesWriter
-import java.io.{ ByteArrayOutputStream, StringReader }
+import scala.util.{Failure, Success}
 
 object WebClient {
 

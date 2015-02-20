@@ -102,7 +102,7 @@ object Examples extends js.JSApp {
 
 
   // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
-  import org.scalajs.dom.extensions._
+  import org.scalajs.dom.ext._
 
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
