@@ -42,12 +42,12 @@ object ScalajsReact extends Build {
     .enablePlugins(ScalaJSPlugin)
     .settings(
       name := "rww-scala-js",
-      jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React",
+      jsDependencies += "org.webjars" % "react" % "0.13.1" / "react-with-addons.js" commonJSName "React",
       libraryDependencies ++= Seq(
         "org.scala-js" %%% "scalajs-dom" % "0.8.0",
-        "com.github.japgolly.scalajs-react" %%% "core" % "0.8.0",
-        "com.github.japgolly.scalajs-react" %%% "test" % "0.8.0" % "test",
-        "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.8.0",
+        "com.github.japgolly.scalajs-react" %%% "core" % "0.8.3",
+        "com.github.japgolly.scalajs-react" %%% "test" % "0.8.3" % "test",
+        "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.8.3",
         "org.w3" %%% "banana-plantain" % "0.8.0-SNAPSHOT",
         "org.w3" %%% "banana-io-ntriples" % "0.8.0-SNAPSHOT"
 
