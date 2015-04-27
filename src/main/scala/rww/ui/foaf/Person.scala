@@ -6,6 +6,8 @@ import java.net.{URI => jURI}
 import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react.{ReactComponentB, _}
 import org.scalajs.dom.document
+import org.scalajs.dom
+
 import org.w3.banana._
 import org.w3.banana.binder.ToPG
 import org.w3.banana.plantain.Plantain
@@ -140,7 +142,7 @@ object Person extends js.JSApp {
     ws.get(URI("http://bblfish.net/people/fake/me")).map(pg => {
       println(pg)
       React.render(component(pg), el)
-    }).onComplete(x=>println("done"+x))
+    }).onComplete(x=>dom.console.log(x.asInstanceOf[js.Any]))
   }
 
 //    import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
