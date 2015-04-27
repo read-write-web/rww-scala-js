@@ -9,6 +9,7 @@ import org.scalajs.dom.document
 import org.w3.banana._
 import org.w3.banana.binder.ToPG
 import org.w3.banana.plantain.Plantain
+import rww.cache.WebStore
 
 import scala.scalajs.js
 import scala.scalajs.js.Date
@@ -53,7 +54,7 @@ object Person extends js.JSApp {
 
   @js.annotation.JSExport
   override def main(): Unit = {
-    example3()
+    example4()
   }
 
   val bbl = URI("http://bblfish.net/people/henry/card#me")
@@ -114,24 +115,33 @@ object Person extends js.JSApp {
     //todo: to be verified
 
     println(s"getting ${bblDocUri}")
-    Ajax.get(bblDocUri.toString,headers=Map("Accept"->"application/n-triples")).onComplete {
+    Ajax.get(bblDocUri.toString, headers = Map("Accept" -> "application/n-triples")).onComplete {
       case Success(xhr) => {
         val start = new Date()
-        println("starting to parse"+start.toLocaleTimeString())
+        println("starting to parse " + start.toLocaleTimeString())
         for {
-          g <- Plantain.ntriplesReader.read(new StringReader(xhr.responseText),bblDocUri.toString)
+          g <- Plantain.ntriplesReader.read(new StringReader(xhr.responseText), bblDocUri.toString)
         // one should then later also add the graph to a store
         //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
         //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
         } yield {
           val end = new Date()
-          println("ending parse. Time taken (in ms) "+(end.getTime() - start.getTime()))
+          println("ending parse. Time taken (in ms) " + (end.getTime() - start.getTime()))
           React.render(component(PointedGraph[Rdf](bbl, g)), el)
         }
       }
 
       case Failure(f) => println("error: " + f)
     }
+  }
+
+  def example4() = {
+    val ws = new WebStore()
+    ws.get(URI("http://bblfish.net/people/fake/me")).map(pg => {
+      println(pg)
+      React.render(component(pg), el)
+    }).onComplete(x=>println("done"+x))
+  }
 
 //    import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 //    for {
@@ -140,5 +150,5 @@ object Person extends js.JSApp {
 //    } yield {
 //      React.render(component(PointedGraph[Rdf](bbl, g)), el)
 //    }
-  }
+
 }
