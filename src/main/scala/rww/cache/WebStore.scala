@@ -29,20 +29,25 @@ class WebStore(implicit ec: ExecutionContext) {
       headers = Map("Accept" -> "application/n-triples")
     ).flatMap { xhr =>
       val start = new Date()
-      val redirectURL = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[String]
+      val redirectURLOpt = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[js.UndefOr[String]]
       println("starting to parse " + start.toLocaleTimeString())
       val f = for {
         g <- Plantain.ntriplesReader.read(new StringReader(xhr.responseText), base.toString)
       } yield {
           val end = new Date()
           println("ending parse. Time taken (in ms) " + (end.getTime() - start.getTime()))
-          if (base.toString != redirectURL) {
-            println(s"$base was redirected to $redirectURL")
-            cache.put(base, -\/(URI(redirectURL)))
-            cache.put(URI(redirectURL), \/-(g))
-          } else {
-            cache.put(base, \/-(g))
+          val graphUrl = redirectURLOpt.map { redirectURLstr =>
+            val redirectURL = URI(redirectURLstr)
+            if (redirectURL == base) base
+            else {
+              cache.put(base,-\/(redirectURL))
+              redirectURL
+            }
+          } getOrElse {
+            base
           }
+          cache.put(graphUrl, \/-(g))
+
           PointedGraph[Rdf](url, g)
         }
       f.asFuture
