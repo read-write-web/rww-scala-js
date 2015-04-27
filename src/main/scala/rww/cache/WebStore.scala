@@ -29,6 +29,8 @@ class WebStore(implicit ec: ExecutionContext) {
       headers = Map("Accept" -> "application/n-triples")
     ).flatMap { xhr =>
       val start = new Date()
+      // responseURL is quite new. See https://xhr.spec.whatwg.org/#the-responseurl-attribute
+      // hence need for UndefOr
       val redirectURLOpt = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[js.UndefOr[String]]
       println("starting to parse " + start.toLocaleTimeString())
       val f = for {
