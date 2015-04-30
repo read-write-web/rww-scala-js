@@ -12,18 +12,23 @@ case class Person(pg: PointedGraph[Rdf])  {
 
   def name = (pg/foaf.name) map (_.pointer) collect {
     case Literal(lexicalForm,xsd.string,lang) => lexicalForm
+    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
   }
   def nick = (pg/foaf.nick) map (_.pointer) collect {
     case Literal(lexicalForm,xsd.string,lang) => lexicalForm
+    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
   }
-  def givenName = (pg/foaf.givenname)++(pg/foaf.givenName) map (_.pointer) collect {
+  def givenName = (pg/foaf.givenName)++(pg/foaf.givenname) map (_.pointer) collect {
     case Literal(lexicalForm,xsd.string,lang) => lexicalForm
+    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
   }
   def familyName = (pg/foaf.familyName)++(pg/foaf.family_name) map (_.pointer) collect {
     case Literal(lexicalForm,xsd.string,lang) => lexicalForm
+    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
   }
   def firstName =  (pg/foaf.firstName) map (_.pointer) collect {
     case Literal(lexicalForm,xsd.string,lang) => lexicalForm
+    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
   }
   def workPlaceHomePage = (pg/foaf.workplaceHomepage) map (_.pointer) collect {
     case URI(u) => u

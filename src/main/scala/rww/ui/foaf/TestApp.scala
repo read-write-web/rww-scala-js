@@ -3,8 +3,7 @@ package rww.ui.foaf
 import java.io.StringReader
 import java.net.{URI => jURI}
 
-import japgolly.scalajs.react.vdom.all._
-import japgolly.scalajs.react.{BackendScope, React, ReactComponentB}
+import japgolly.scalajs.react.React
 import org.scalajs.dom
 import org.scalajs.dom.document
 import org.w3.banana.binder.ToPG
@@ -15,7 +14,6 @@ import rww.cache.WebStore
 import scala.scalajs.js
 import scala.scalajs.js.Date
 import scala.util.{Failure, Success}
-
 import scalacss.Defaults._
 import scalacss.ScalaCssReact._
 
@@ -35,31 +33,6 @@ object TestApp extends js.JSApp {
 
   import org.w3.banana.plantain.Plantain.ops._
 
-  case class PersonProps(personPG: PointedGraph[Rdf],
-                         edit: Boolean = false,
-                         editText: String = "Edit")
-
-  class Backend(t: BackendScope[Unit, PersonProps]) {
-
-  }
-
-  val component = ReactComponentB[PersonProps]("Person")
-    .initialState(None)
-    .render((P, S, B) => {
-    val x = Person(P.personPG)
-    if (P.edit) p("in edit mode")
-    else {
-      div(className := "basic")(
-        x.name.headOption.map(name=>div(FoafStyles.name,  title:=name.toString)(name.toString)) getOrElse div(),
-        { val n = x.givenName.headOption.getOrElse("(unknown)");
-          div(FoafStyles.surname, title:=n)(n)},
-        x.workPlaceHomePage.headOption.map{hp => div(FoafStyles.company, title:=hp.toString)(hp.toString)} getOrElse div(),
-        img(src := x.depiction.headOption.map(_.toString).getOrElse("avatar-man.png")
-        )
-      )
-    }
-  }).build
-
   val el = document getElementById "eg1"
 
   @js.annotation.JSExport
@@ -70,6 +43,7 @@ object TestApp extends js.JSApp {
 
   val bbl = URI("http://bblfish.net/people/henry/card#me")
   val bblDocUri = bbl.fragmentLess
+  import Profile._
 
   //start with a locally built graph, find picture
   def example() = {
@@ -83,17 +57,17 @@ object TestApp extends js.JSApp {
 
   //parse graph from string then show picture
   def example2() = {
-   // do a request on the internet to get the file for the above url
+    // do a request on the internet to get the file for the above url
     val foaf = "http://xmlns.com/foaf/0.1/"
     val xsd = "http://www.w3.org/2001/XMLSchema#"
     val base = bblDocUri.toString
     val bblDoc =
       s"""<$base#me> <${foaf}depiction> <http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg> .
-        |<$base#me> <${foaf}depiction> <http://bblfish.net/pix/bfish.large.jpg> .
-        |<$base#me> <${foaf}name> "Henry" .
-        |<$base#me> <${foaf}age> "42"^^<${xsd}int> .
-        |<$base#me> <${foaf}near> "England"@en .
-        |""".stripMargin
+                               |<$base#me> <${foaf}depiction> <http://bblfish.net/pix/bfish.large.jpg> .
+                                                     |<$base#me> <${foaf}name> "Henry" .
+                                                                           |<$base#me> <${foaf}age> "42"^^<${xsd}int> .
+                                                                                                                   |<$base#me> <${foaf}near> "England"@en .
+                                                                                                                                         |""".stripMargin
 
     println(bblDoc)
 
@@ -101,19 +75,19 @@ object TestApp extends js.JSApp {
     //parse document above with Readers to get graph below
 
     val f = for {
-      g <- Plantain.ntriplesReader.read(new StringReader(bblDoc),bblDocUri.toString)
+      g <- Plantain.ntriplesReader.read(new StringReader(bblDoc), bblDocUri.toString)
     // one should then later also add the graph to a store
     //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
     //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
     } yield {
-      React.render(component(PersonProps(PointedGraph[Rdf](bbl, g))), el)
-    }
+        React.render(component(PersonProps(PointedGraph[Rdf](bbl, g))), el)
+      }
     f.get
   }
 
 
-
   // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
+
   import org.scalajs.dom.ext._
 
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
@@ -151,15 +125,15 @@ object TestApp extends js.JSApp {
     ws.get(URI("http://bblfish.net/people/fake/me")).map(pg => {
       println(pg)
       React.render(component(PersonProps(pg)), el)
-    }).onComplete(x=>dom.console.log(x.asInstanceOf[js.Any]))
+    }).onComplete(x => dom.console.log(x.asInstanceOf[js.Any]))
   }
 
-//    import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
-//    for {
-//      i <- rdfstoreOps.loadRemote(jsstore, bblDocUri)
-//      g <- JSStore.store.getGraph(JSStore.jsstore, bblDocUri)
-//    } yield {
-//      React.render(component(PointedGraph[Rdf](bbl, g)), el)
-//    }
+  //    import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+  //    for {
+  //      i <- rdfstoreOps.loadRemote(jsstore, bblDocUri)
+  //      g <- JSStore.store.getGraph(JSStore.jsstore, bblDocUri)
+  //    } yield {
+  //      React.render(component(PointedGraph[Rdf](bbl, g)), el)
+  //    }
 
 }

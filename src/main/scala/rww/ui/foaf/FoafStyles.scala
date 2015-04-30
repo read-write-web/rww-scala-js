@@ -41,6 +41,19 @@ object FoafStyles extends StyleSheet.Inline {
     top.named('outer) :*: img.named('image)
   }
 
+  val picTop =  style(
+    width(300 px),
+    height(300 px),
+    borderRadius(50 %%),
+    overflow.hidden,
+    float.right
+  )
+
+  val img = style(
+    width(100 %%),
+    height.auto
+  )
+
   val name = style(
     height(50 px),
     lineHeight(50 px),
