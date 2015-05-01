@@ -1,5 +1,6 @@
 package rww.ui.foaf
 
+import scalacss.{Transform, CanIUse, Attr}
 import scalacss.Defaults._
 
 
@@ -26,6 +27,7 @@ object FoafStyles extends StyleSheet.Inline {
 
   import dsl._
 
+  // note need to use import shapeless.singleton.syntax._ if using this
   val picture = styleC {
     val top = styleS(
       width(300 px),
@@ -41,18 +43,19 @@ object FoafStyles extends StyleSheet.Inline {
     top.named('outer) :*: img.named('image)
   }
 
-  val picTop =  style(
+  //same as above but unsafe
+  val pic =  style(
     width(300 px),
     height(300 px),
     borderRadius(50 %%),
     overflow.hidden,
-    float.right
+    float.right,
+    unsafeChild("img")(
+      width(100 %%),
+      height.auto
+    )
   )
 
-  val img = style(
-    width(100 %%),
-    height.auto
-  )
 
   val name = style(
     height(50 px),
@@ -83,5 +86,18 @@ object FoafStyles extends StyleSheet.Inline {
     overflow.hidden
   )
 
+  val basic = style(
+    width(400 px)
+  )
+
+  // below taken from base.less
+  val clearfix = style(
+    &.before(content:="", display.table ),
+    &.after(clear.both)
+//    zoom := "0"
+  )
+
+
+  val center = style( margin(0 em, auto))
 
 }

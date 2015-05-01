@@ -2,8 +2,6 @@ package rww.ui.foaf
 
 import japgolly.scalajs.react.vdom.all._
 import japgolly.scalajs.react.{BackendScope, ReactComponentB}
-import org.w3.banana.PointedGraph
-import rww.ui.foaf.TestApp.Rdf
 
 import scalacss.ScalaCssReact._
 
@@ -11,7 +9,7 @@ import scalacss.ScalaCssReact._
 object Profile {
 
 
-  case class PersonProps(personPG: PointedGraph[Rdf],
+  case class PersonProps(person: Person,
                          edit: Boolean = false,
                          editText: String = "Edit")
 
@@ -19,28 +17,34 @@ object Profile {
 
   }
 
+  import rww.ui.foaf.{FoafStyles => style}
 
-  val component = ReactComponentB[PersonProps]("Person")
+  val profile = ReactComponentB[PersonProps]("Profile")
     .initialState(None)
     .render((P, S, B) => {
-    val x = Person(P.personPG)
+    // import shapeless.singleton.syntax._ <- use this when using styleC
     if (P.edit) p("in edit mode")
-    else div(className := "basic")(
-    x.name.headOption.map(name => div(FoafStyles.name, title := name)(name)) getOrElse div(), {
-      val n = x.givenName.headOption.getOrElse("(unknown)")
-      div(FoafStyles.surname, title := n)(n)
-    },
-    x.workPlaceHomePage.headOption.map { hp =>
-      div(FoafStyles.company, title := hp.toString)(hp.toString)
-    } getOrElse
-      div(),
-    //      FoafStyles.picture('outer)( outerStyle =>
-    //        _('image)( imageStyle =>
-    div(FoafStyles.picTop)(
-      img(img, src := x.depiction.headOption.getOrElse("avatar-man.png"))
+    else div(style.clearfix,style.center)(
+      div(style.pic)(
+        img( src := P.person.depiction.headOption.getOrElse("avatar-man.png"))
+      ),
+    personBasicInfo(P)
     )
-    //        )
-    //      )
+  }).build
+
+  val personBasicInfo = ReactComponentB[PersonProps]("BasicInfo")
+  .initialState(None)
+  .render((P,S,B)=>{
+    val p = P.person
+    div(style.basic)(
+      p.name.headOption.map(name => div(style.name, title := name)(name)) getOrElse div(), {
+        val n = p.givenName.headOption.getOrElse("(unknown)")
+        div(style.surname, title := n)(n)
+      },
+      p.workPlaceHomePage.headOption.map { hp =>
+        div(style.company, title := hp.toString)(hp.toString)
+      } getOrElse
+        div()
     )
   }).build
 

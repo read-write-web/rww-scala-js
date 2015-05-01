@@ -52,7 +52,7 @@ object TestApp extends js.JSApp {
         -- foaf.depiction ->- URI("http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg")
         -- foaf.depiction ->- URI("http://bblfish.net/pix/bfish.large.jpg")
       ).graph
-    React.render(component(PersonProps(PointedGraph[Rdf](bbl, graph))), el)
+    React.render(profile(PersonProps(Person(PointedGraph[Rdf](bbl, graph)))), el)
   }
 
   //parse graph from string then show picture
@@ -63,11 +63,11 @@ object TestApp extends js.JSApp {
     val base = bblDocUri.toString
     val bblDoc =
       s"""<$base#me> <${foaf}depiction> <http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg> .
-                               |<$base#me> <${foaf}depiction> <http://bblfish.net/pix/bfish.large.jpg> .
-                                                     |<$base#me> <${foaf}name> "Henry" .
-                                                                           |<$base#me> <${foaf}age> "42"^^<${xsd}int> .
-                                                                                                                   |<$base#me> <${foaf}near> "England"@en .
-                                                                                                                                         |""".stripMargin
+         |<$base#me> <${foaf}depiction> <http://bblfish.net/pix/bfish.large.jpg> .
+         |<$base#me> <${foaf}name> "Henry" .
+         |<$base#me> <${foaf}age> "42"^^<${xsd}int> .
+         |<$base#me> <${foaf}near> "England"@en .
+         |""".stripMargin
 
     println(bblDoc)
 
@@ -80,7 +80,7 @@ object TestApp extends js.JSApp {
     //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
     //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
     } yield {
-        React.render(component(PersonProps(PointedGraph[Rdf](bbl, g))), el)
+        React.render(profile(PersonProps(Person(PointedGraph[Rdf](bbl, g)))), el)
       }
     f.get
   }
@@ -106,13 +106,10 @@ object TestApp extends js.JSApp {
         println("starting to parse " + start.toLocaleTimeString())
         for {
           g <- Plantain.ntriplesReader.read(new StringReader(xhr.responseText), bblDocUri.toString)
-        // one should then later also add the graph to a store
-        //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
-        //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
         } yield {
           val end = new Date()
           println("ending parse. Time taken (in ms) " + (end.getTime() - start.getTime()))
-          React.render(component(PersonProps(PointedGraph[Rdf](bbl, g))), el)
+          React.render(profile(PersonProps(Person(PointedGraph[Rdf](bbl, g)))), el)
         }
       }
 
@@ -123,8 +120,7 @@ object TestApp extends js.JSApp {
   def example4() = {
     val ws = new WebStore()
     ws.get(URI("http://bblfish.net/people/fake/me")).map(pg => {
-      println(pg)
-      React.render(component(PersonProps(pg)), el)
+      React.render(profile(PersonProps(Person(pg))), el)
     }).onComplete(x => dom.console.log(x.asInstanceOf[js.Any]))
   }
 
