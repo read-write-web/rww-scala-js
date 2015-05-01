@@ -24,11 +24,12 @@ object Profile {
     .render((P, S, B) => {
     // import shapeless.singleton.syntax._ <- use this when using styleC
     if (P.edit) p("in edit mode")
-    else div(style.clearfix,style.center)(
+    else div(style.clearfix,style.center,style.body)(
       div(style.pic)(
         img( src := P.person.depiction.headOption.getOrElse("avatar-man.png"))
       ),
-    personBasicInfo(P)
+    personBasicInfo(P),
+    personMoreInfo(P)
     )
   }).build
 
@@ -45,6 +46,28 @@ object Profile {
         div(style.company, title := hp.toString)(hp.toString)
       } getOrElse
         div()
+    )
+  }).build
+
+  val personMoreInfo =  ReactComponentB[PersonProps]("MoreInfo")
+    .initialState(None)
+    .render((P,S,B)=> {
+     val p = P.person
+    div(style.details)(
+      div(className:="title title-case",style.centerText,style.titleCase)("Details"),
+      ul(style.clearfix,style.span3)(
+        li(style.floatLeft)(
+           div(className:="email")(
+             div(className:="title-case")("Email"),
+             div(className:="content email-content")(p.mbox.headOption.getOrElse[String](""))
+           ),
+           div(className:="phone")(
+             div(className:="title-case")("Phone"),
+             div(className:="content email-content")(p.phone.headOption.getOrElse[String](""))
+           )
+         )
+        )
+
     )
   }).build
 

@@ -1,6 +1,5 @@
 package rww.ui.foaf
 
-import scalacss.{Transform, CanIUse, Attr}
 import scalacss.Defaults._
 
 
@@ -10,22 +9,34 @@ import scalacss.Defaults._
  */
 object FoafStyles extends StyleSheet.Inline {
 
-  val darkGrey =  0x24221f
-  val mediumGrey = 0x938b7f
-  val lightGrey =  0xe2e2e2
-  val lighterGrey =  0xededed
-  val lightestGrey =  0xf8f8f8
-  val lightYellow =  0xfffdcb
-  val lightRed =  0xffe6e6
-  val red =  0xb80b5b
-  val blue =  0x3fabd3
-  val green =  0x0bb988
-  val orange =  0xff793a
-  val brown =  0x938b7f
+  import dsl._
+
+  //  val darkGrey =  0x24221f
+  val mediumGrey = "#938b7f"
+//  val lightGrey =  0xe2e2e2
+//  val lighterGrey =  0xededed
+  val lightestGrey =  "#f8f8f8"
+  val myBlue = "#3fabd3"
+//  val lightYellow =  0xfffdcb
+//  val lightRed =  0xffe6e6
+//  val red =  0xb80b5b
+//  val blue =  0x3fabd3
+//  val green =  0x0bb988
+//  val orange =  0xff793a
+//  val brown =  0x938b7f
 //  val white = white
 //  val black = black
 
-  import dsl._
+   val editProfile = style(
+    width(40 px),
+    height(40 px),
+    backgroundColor.red,
+    color.white,
+    float.right,
+    textTransform.uppercase,
+    textAlign.center,
+    lineHeight(40 px)
+  )
 
   // note need to use import shapeless.singleton.syntax._ if using this
   val picture = styleC {
@@ -80,7 +91,7 @@ object FoafStyles extends StyleSheet.Inline {
     height(20 px),
     lineHeight(20 px),
     fontSize(16 px),
-    color.rgb(0x93,0x8b,0x7f),
+    color(mediumGrey),
     whiteSpace.nowrap,
     textOverflow := "ellipsis",
     overflow.hidden
@@ -88,6 +99,38 @@ object FoafStyles extends StyleSheet.Inline {
 
   val basic = style(
     width(400 px)
+  )
+
+  val details = style(
+    color(mediumGrey),
+    unsafeChild(".title")(
+      backgroundColor(myBlue),
+      padding(7 px, 10 px),
+      margin(30 px, 0 px),
+      color.white
+    ),
+    unsafeChild(".title-case")(
+      margin(0 px,0 px,5 px)
+    ),
+    unsafeChild(".content")(
+      margin(0 px, 0 px, 20 px),
+      whiteSpace.nowrap,
+      textOverflow := "ellipsis",
+      overflow.hidden
+    ),
+    unsafeChild("ul")(
+      padding.`0`,
+      unsafeChild("li")(
+        height(150 px),
+        padding(10 px),
+        backgroundColor(lightestGrey),
+        unsafeChild("input")(
+         fontSize(16 px),
+         lineHeight(30 px),
+         height(20 px)
+        )
+      )
+    )
   )
 
   // below taken from base.less
@@ -100,4 +143,37 @@ object FoafStyles extends StyleSheet.Inline {
 
   val center = style( margin(0 em, auto))
 
+  val centerText = style(textAlign.center )
+
+  val floatLeft = style( float.left )
+
+  val titleCase = style("title-case")(
+    fontWeight.bold,
+    textTransform.uppercase,
+    color("#000000")
+  )
+
+  val span3 = style(
+     unsafeChild("li")(
+      listStyleType := "none",
+      width( 32 %%),
+      margin( 0 px, 2 %%, 2 %%, 0 px ),
+      boxSizing.borderBox
+  ),
+    &.nthChild(2)(
+      margin( 0 px, 0 px, 2 %%, 0 px )
+    )
+  )
+
+  val body = style(
+    backgroundColor("#EDEDED"),
+    minHeight(98 %%),
+    width( 100 %%),
+    minWidth( 1000 px),
+    margin( 0 px),
+    padding( 0 px ),
+    height( 100 %% ),
+    fontFamily :="'Noto Sans', sans-serif",
+    fontSize(1 em)
+  )
 }

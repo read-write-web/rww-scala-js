@@ -27,7 +27,7 @@ case class Person(pg: PointedGraph[Rdf])  {
     case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
   }
   def firstName =  (pg/foaf.firstName) map (_.pointer) collect {
-    case Literal(lexicalForm,xsd.string,lang) => lexicalForm
+    case Literal(lexicalForm,xsd.string,None) => lexicalForm
     case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
   }
   def workPlaceHomePage = (pg/foaf.workplaceHomepage) map (_.pointer) collect {
@@ -38,6 +38,13 @@ case class Person(pg: PointedGraph[Rdf])  {
   }
   def logo = (pg/foaf.logo) map (_.pointer) collect {
     case URI(u) => u
+  }
+  def mbox = (pg/foaf.mbox) map (_.pointer) collect {
+    case URI(u) => u
+  }
+  def phone = (pg/foaf.phone) map (_.pointer) collect {
+    case URI(u) => u
+    case Literal(lexicalForm,xsd.string,_) => lexicalForm
   }
 
 }
