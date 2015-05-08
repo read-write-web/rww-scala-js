@@ -50,8 +50,8 @@ object ScalajsReact extends Build {
         "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.4",
         "com.github.japgolly.scalacss" %%% "core" % "0.2.0",
         "com.github.japgolly.scalacss" %%% "ext-react" % "0.2.0",
-        "org.w3" %%% "banana-plantain" % "0.8.0-SNAPSHOT",
-        "org.w3" %%% "banana-io-ntriples" % "0.8.0-SNAPSHOT"
+        "org.w3" %%% "banana-plantain" % "0.8.2-SNAPSHOT",
+        "org.w3" %%% "banana-io-ntriples" % "0.8.2-SNAPSHOT"
 
         //"org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.7-SNAPSHOT",
         //"org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6",

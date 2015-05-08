@@ -3,10 +3,6 @@ package rww.ui.foaf
 import scalacss.Defaults._
 
 
-
-/**
- * Created by hjs on 30/04/15.
- */
 object FoafStyles extends StyleSheet.Inline {
 
   import dsl._
@@ -14,7 +10,7 @@ object FoafStyles extends StyleSheet.Inline {
   //  val darkGrey =  0x24221f
   val mediumGrey = "#938b7f"
 //  val lightGrey =  0xe2e2e2
-//  val lighterGrey =  0xededed
+  val lighterGrey =  "#ededed"
   val lightestGrey =  "#f8f8f8"
   val myBlue = "#3fabd3"
 //  val lightYellow =  0xfffdcb
@@ -101,6 +97,7 @@ object FoafStyles extends StyleSheet.Inline {
     width(400 px)
   )
 
+
   val details = style(
     color(mediumGrey),
     unsafeChild(".title")(
@@ -120,9 +117,19 @@ object FoafStyles extends StyleSheet.Inline {
     ),
     unsafeChild("ul")(
       padding.`0`,
+      display.flex,
+      height(200 px),
+//      maxWidth(100 %%),
+//      flexDirection.column,
+      flexWrap.wrap,
+//      justifyContent.flexStart,
+//      alignItems.flexStart,
+//      alignContent.flexStart,
       unsafeChild("li")(
-        height(150 px),
+        width(300 px),
+        margin(10 px),
         padding(10 px),
+        alignSelf.auto,
         backgroundColor(lightestGrey),
         unsafeChild("input")(
          fontSize(16 px),
@@ -133,10 +140,12 @@ object FoafStyles extends StyleSheet.Inline {
     )
   )
 
+
+
   // below taken from base.less
   val clearfix = style(
-    &.before(content:="", display.table ),
-    &.after(clear.both)
+    &.before( display.table ),
+    &.after( clear.both )
 //    zoom := "0"
   )
 
@@ -156,7 +165,7 @@ object FoafStyles extends StyleSheet.Inline {
   val span3 = style(
      unsafeChild("li")(
       listStyleType := "none",
-      width( 32 %%),
+      width( 32 %% ),
       margin( 0 px, 2 %%, 2 %%, 0 px ),
       boxSizing.borderBox
   ),
@@ -175,5 +184,12 @@ object FoafStyles extends StyleSheet.Inline {
     height( 100 %% ),
     fontFamily :="'Noto Sans', sans-serif",
     fontSize(1 em)
+  )
+
+  val content = style(
+    margin(0 px, 0 px, 20 px ),
+    whiteSpace.nowrap,
+    textOverflow := "ellipsis",
+    overflow.hidden
   )
 }

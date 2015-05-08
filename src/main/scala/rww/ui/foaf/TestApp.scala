@@ -10,6 +10,7 @@ import org.w3.banana.binder.ToPG
 import org.w3.banana.plantain._
 import org.w3.banana.{FOAFPrefix, PointedGraph, RDF, RDFOps}
 import rww.cache.WebStore
+import rww.ontology.Person
 
 import scala.scalajs.js
 import scala.scalajs.js.Date
@@ -52,7 +53,7 @@ object TestApp extends js.JSApp {
         -- foaf.depiction ->- URI("http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg")
         -- foaf.depiction ->- URI("http://bblfish.net/pix/bfish.large.jpg")
       ).graph
-    React.render(profile(PersonProps(Person(PointedGraph[Rdf](bbl, graph)))), el)
+    React.render(profile(Props(Person(PointedGraph[Rdf](bbl, graph)))), el)
   }
 
   //parse graph from string then show picture
@@ -80,7 +81,7 @@ object TestApp extends js.JSApp {
     //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
     //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
     } yield {
-        React.render(profile(PersonProps(Person(PointedGraph[Rdf](bbl, g)))), el)
+        React.render(profile(Props(Person(PointedGraph[Rdf](bbl, g)))), el)
       }
     f.get
   }
@@ -99,7 +100,6 @@ object TestApp extends js.JSApp {
     //that presumably uses javascripts task queue (
     //todo: to be verified
 
-    println(s"getting ${bblDocUri}")
     Ajax.get(bblDocUri.toString, headers = Map("Accept" -> "application/n-triples")).onComplete {
       case Success(xhr) => {
         val start = new Date()
@@ -109,7 +109,7 @@ object TestApp extends js.JSApp {
         } yield {
           val end = new Date()
           println("ending parse. Time taken (in ms) " + (end.getTime() - start.getTime()))
-          React.render(profile(PersonProps(Person(PointedGraph[Rdf](bbl, g)))), el)
+          React.render(profile(Props(Person(PointedGraph[Rdf](bbl, g)))), el)
         }
       }
 
@@ -120,7 +120,7 @@ object TestApp extends js.JSApp {
   def example4() = {
     val ws = new WebStore()
     ws.get(URI("http://bblfish.net/people/fake/me")).map(pg => {
-      React.render(profile(PersonProps(Person(pg))), el)
+      React.render(profile(Props(Person(pg))), el)
     }).onComplete(x => dom.console.log(x.asInstanceOf[js.Any]))
   }
 

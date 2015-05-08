@@ -1,14 +1,18 @@
-package rww.ui.foaf
+package rww.ontology
 
+import java.net.{URI => jURI}
+
+import org.w3.banana.plantain.Plantain.ops._
 import org.w3.banana.{FOAFPrefix, PointedGraph}
 import rww.rdf._
 
 /**
- * Created by hjs on 30/04/15.
+ *
  */
 case class Person(pg: PointedGraph[Rdf])  {
-  import org.w3.banana.plantain.Plantain.ops._
   val foaf = FOAFPrefix[Rdf]
+  val ct = ContactPrefix[Rdf]
+//  val contact =
 
   def name = (pg/foaf.name) map (_.pointer) collect {
     case Literal(lexicalForm,xsd.string,lang) => lexicalForm
@@ -39,12 +43,36 @@ case class Person(pg: PointedGraph[Rdf])  {
   def logo = (pg/foaf.logo) map (_.pointer) collect {
     case URI(u) => u
   }
-  def mbox = (pg/foaf.mbox) map (_.pointer) collect {
-    case URI(u) => u
+  
+  def account = (pg/foaf.account)++(pg/foaf.holdsAccount) map { OnlineAccount(_) }
+
+  def mbox = (pg/foaf.mbox) map { Mbox(_) }
+
+  def phone = (pg/foaf.phone) map { Tel(_) }
+
+  def office = (pg/ct.office)  collect {
+    case bpg @ PointedGraph(BNode(_),_) => ContactLocation(bpg)
+    case upg @ PointedGraph(URI(_),_)   => ContactLocation(upg)
+    //todo: how problematic is a literal ContactLocation?
   }
-  def phone = (pg/foaf.phone) map (_.pointer) collect {
-    case URI(u) => u
-    case Literal(lexicalForm,xsd.string,_) => lexicalForm
+  def home = (pg/ct.home)  collect {
+    case bpg @ PointedGraph(BNode(_),_) => ContactLocation(bpg)
+    case upg @ PointedGraph(URI(_),_)   => ContactLocation(upg)
+    //todo: how problematic is a literal ContactLocation?
+  }
+  def emergency = (pg/ct.emergency)  collect {
+    case bpg @ PointedGraph(BNode(_),_) => ContactLocation(bpg)
+    case upg @ PointedGraph(URI(_),_)   => ContactLocation(upg)
+    //todo: how problematic is a literal ContactLocation?
+  }
+  def mobile = (pg/ct.mobile)  collect {
+    case bpg @ PointedGraph(BNode(_),_) => ContactLocation(bpg)
+    case upg @ PointedGraph(URI(_),_)   => ContactLocation(upg)
+    //todo: how problematic is a literal ContactLocation?
   }
 
 }
+
+
+
+
