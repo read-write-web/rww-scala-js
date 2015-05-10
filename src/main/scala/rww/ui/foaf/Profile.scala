@@ -1,14 +1,31 @@
 package rww.ui.foaf
 
-import japgolly.scalajs.react.ReactComponentB
+import japgolly.scalajs.react.{ReactEvent, ReactEventI, BackendScope, ReactComponentB}
+import japgolly.scalajs.react.extra.LogLifecycle
 import japgolly.scalajs.react.vdom.all._
+import org.scalajs
+import org.scalajs.dom
+import org.w3.banana.{FOAFPrefix, PointedGraph}
 import rww.ontology._
+import rww.ui.foaf.TestApp.Rdf
 
+import scala.scalajs
+import scala.scalajs.js
+import scala.scalajs.js.UndefOr
 import scalacss.ScalaCssReact._
+import scalaz.Alpha.{P, S}
+import scalaz.State
 
 
 object Profile {
 
+  import rww.rdf.ops._
+  case class RelProp(parent: PointedGraph[Rdf],
+                     rel: Rdf#URI,
+                     thiz: PointedGraph[Rdf],
+                     edit: Boolean = false)
+
+  case class RelProps(subj: PointedGraph[Rdf], rel: Rdf#URI, thizs: Seq[PointedGraph[Rdf]])
 
   case class Props[O](obj: O,
                       edit: Boolean = false,
@@ -33,14 +50,39 @@ object Profile {
       PersonBasicInfo(P),
       PersonMoreInfo(P)
     )
-  }).build
+  })
+    .configure(LogLifecycle.short)
+    .build
+
+  val IMG = ReactComponentB[RelProp]("img")
+    .initialState(None)
+    .render((P,S,B)=> {
+    val uri = P.thiz.pointer match {
+      case URI(u) =>  u
+      case _ => "avatar-man.png"
+    }
+    img(src:=uri)
+  })
+
+//  val IMGs = ReactComponentB[RelProp]("img")
+//    .initialState(None)
+//    .render((P,S,B)=> {
+//    img(src := P.subj)
+//  })
 
   val PersonBasicInfo = ReactComponentB[Props[Person]]("PersonBasicInfo")
   .initialState(None)
   .render((P,S,B)=>{
     val p = P.obj
+    val foaf = FOAFPrefix[Rdf]
+
     div(style.basic)(
-      p.name.headOption.map(name => div(style.name, title := name)(name)) getOrElse div(), {
+      (P.obj.pg/foaf.name).headOption.map(pg=>{
+        println("name="+pg.pointer.toString)
+        NAME(RelProp(P.obj.pg,foaf.name,pg,true))
+      }).toSeq,
+//      p.name.headOption.map(name => NAME(RelProp(P.obj,foaf.name,name)) getOrElse div(),
+    {
         val n = p.givenName.headOption.getOrElse("(unknown)")
         div(style.surname, title := n)(n)
       },
@@ -51,6 +93,40 @@ object Profile {
     )
   }).build
 
+  case class NameState(edit: Option[String]=None)
+  class NameBackend($: BackendScope[RelProp,NameState]) {
+    def handleSubmit(e: ReactEventI) = {
+      e.preventDefault()
+      $.modState(s => NameState(Some(e.target.value)))
+    }
+    def onChange(e: ReactEventI) = {
+      val v : js.UndefOr[org.scalajs.dom.Node] = e.target
+      $.modState(s => NameState(v.toOption.map(_.nodeValue).orElse(Option(""))))
+    }
+  }
+
+  val NAME = ReactComponentB[RelProp]("PersonName")
+    .initialState(NameState())
+    .backend(new NameBackend(_))
+    .render((P,S,B)=> {
+    val nameOpt = P.thiz.pointer match {
+      case Literal(name, _, _) => Some(name)
+      case _ => None
+    }
+    if (S.edit.isEmpty && nameOpt.isDefined)
+      div(style.name, title := nameOpt.get, onClick ==> B.onChange)(nameOpt.get)
+    else {
+      form(onSubmit ==> B.handleSubmit)(
+        input(style.name, tpe := "text", placeholder := "Enter name",
+          value := S.edit.get,
+          onChange ==> B.onChange
+        )
+      )
+    }
+  }).build
+
+  def keys(pg: PointedGraph[Rdf]) = pg.pointer.toString
+
   val PersonMoreInfo =  ReactComponentB[Props[Person]]("PersonMoreInfo")
     .initialState(None)
     .render((P,S,B)=> {
@@ -58,7 +134,7 @@ object Profile {
     div(style.details)(
       div(className:="title",style.centerText,style.titleCase)("Details"),
       ul(style.clearfix,style.span3)(
-        for (tel <- p.phone) yield PhoneInfo(Props(tel)),
+        for (tel <- p.phone) yield PhoneInfo.withKey(tel.pg.pointer.toString)(Props(tel)),
         for (mbox <- p.mbox) yield MailInfo(Props(mbox)),
         for (hm <- p.home) yield ContactLocationInfo(Props(("home",hm))),
         for (o <- p.office) yield ContactLocationInfo(Props(("office",o))),
