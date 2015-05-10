@@ -97,12 +97,19 @@ object Profile {
   class NameBackend($: BackendScope[RelProp,NameState]) {
     def handleSubmit(e: ReactEventI) = {
       e.preventDefault()
+      $.state.edit.map { newName =>
+        val oldTriple = Triple($.props.parent.pointer, $.props.rel, $.props.thiz.pointer)
+        val newTriple = Triple($.props.parent.pointer, $.props.rel, Literal(newName))
+        println("remove:"+oldTriple)
+        println("add:"+newTriple)
+      }
+    }
+    def enterEdit(e: ReactEvent) =
+      $.modState(_=>NameState(Some("")))
+
+    def onChange(e: ReactEventI) =
       $.modState(s => NameState(Some(e.target.value)))
-    }
-    def onChange(e: ReactEventI) = {
-      val v : js.UndefOr[org.scalajs.dom.Node] = e.target
-      $.modState(s => NameState(v.toOption.map(_.nodeValue).orElse(Option(""))))
-    }
+
   }
 
   val NAME = ReactComponentB[RelProp]("PersonName")
@@ -114,7 +121,7 @@ object Profile {
       case _ => None
     }
     if (S.edit.isEmpty && nameOpt.isDefined)
-      div(style.name, title := nameOpt.get, onClick ==> B.onChange)(nameOpt.get)
+      div(style.name, title := nameOpt.get, onClick ==> B.enterEdit)(nameOpt.get)
     else {
       form(onSubmit ==> B.handleSubmit)(
         input(style.name, tpe := "text", placeholder := "Enter name",
