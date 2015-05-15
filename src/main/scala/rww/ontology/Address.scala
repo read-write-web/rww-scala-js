@@ -4,7 +4,7 @@ import java.net.{URI => jURI}
 
 import org.w3.banana.PointedGraph
 import org.w3.banana.plantain.Plantain.ops._
-import rww.rdf._
+import rww.Rdf._
 
 /**
  * Created by hjs on 07/05/2015.

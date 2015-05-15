@@ -2,9 +2,9 @@ package rww.ontology
 
 import java.net.{URI => jURI}
 
-import org.w3.banana.plantain.Plantain.ops._
 import org.w3.banana.{FOAFPrefix, PointedGraph}
-import rww.rdf._
+import rww.Rdf.ops._
+import rww.Rdf
 
 /**
  *

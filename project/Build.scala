@@ -3,7 +3,12 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 
-object ScalajsReact extends Build {
+/**
+ * Application settings. Configure the build for your application here.
+ * You normally don't have to touch the actual build definition after this.
+ */
+
+object RwwScalaJS extends Build {
 
   type PE = Project => Project
 
@@ -50,6 +55,11 @@ object ScalajsReact extends Build {
         "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.4",
         "com.github.japgolly.scalacss" %%% "core" % "0.2.0",
         "com.github.japgolly.scalacss" %%% "ext-react" % "0.2.0",
+        "com.lihaoyi" %%% "scalarx" % "0.2.8",
+        "com.lihaoyi" %%% "utest" % "0.3.1",
+        "org.webjars" % "font-awesome" % "4.3.0-1" % Provided,
+        "org.webjars" % "bootstrap" % "3.3.2" % Provided,
+        "org.webjars" % "log4javascript" % "1.4.10" / "js/log4javascript_uncompressed.js" ,
         "org.w3" %%% "banana-plantain" % "0.8.2-SNAPSHOT",
         "org.w3" %%% "banana-io-ntriples" % "0.8.2-SNAPSHOT"
 

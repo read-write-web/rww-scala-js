@@ -1,33 +1,29 @@
 package rww.ui.foaf
 
-import japgolly.scalajs.react.{ReactEvent, ReactEventI, BackendScope, ReactComponentB}
+import japgolly.scalajs.react.ReactComponentB
 import japgolly.scalajs.react.extra.LogLifecycle
 import japgolly.scalajs.react.vdom.all._
-import org.scalajs
-import org.scalajs.dom
 import org.w3.banana.{FOAFPrefix, PointedGraph}
+import rww.Rdf
 import rww.ontology._
-import rww.ui.foaf.TestApp.Rdf
+import rww.rdf.Named
 
-import scala.scalajs
-import scala.scalajs.js
-import scala.scalajs.js.UndefOr
 import scalacss.ScalaCssReact._
-import scalaz.Alpha.{P, S}
-import scalaz.State
 
 
 object Profile {
 
-  import rww.rdf.ops._
-  case class RelProp(parent: PointedGraph[Rdf],
-                     rel: Rdf#URI,
-                     thiz: PointedGraph[Rdf],
-                     edit: Boolean = false)
+  def apply(props: Props[Named[Rdf,Person]]) = {
+    println("rendering Profile for "+props.obj.obj.pg.pointer+" on "+props.context)
+    profile(props)
+  }
+
+  import rww.Rdf.ops._
 
   case class RelProps(subj: PointedGraph[Rdf], rel: Rdf#URI, thizs: Seq[PointedGraph[Rdf]])
 
   case class Props[O](obj: O,
+                      context: Rdf#URI ,
                       edit: Boolean = false,
                       editText: String = "Edit")
 
@@ -37,7 +33,7 @@ object Profile {
 
   import rww.ui.foaf.{FoafStyles => style}
 
-  val profile = ReactComponentB[Props[Person]]("Profile")
+  val profile = ReactComponentB[Props[Named[Rdf,Person]]]("Profile")
     .initialState(None)
     .render((P, S, B) => {
     val person = P.obj
@@ -45,7 +41,7 @@ object Profile {
     if (P.edit) p("in edit mode")
     else div(style.clearfix,style.center,style.body)(
       div(style.pic)(
-        img(src := P.obj.depiction.headOption.getOrElse("avatar-man.png"))
+        img(src := P.obj.obj.depiction.headOption.getOrElse("avatar-man.png"))
       ),
       PersonBasicInfo(P),
       PersonMoreInfo(P)
@@ -57,7 +53,7 @@ object Profile {
   val IMG = ReactComponentB[RelProp]("img")
     .initialState(None)
     .render((P,S,B)=> {
-    val uri = P.thiz.pointer match {
+    val uri = P.npg.pointer match {
       case URI(u) =>  u
       case _ => "avatar-man.png"
     }
@@ -70,84 +66,45 @@ object Profile {
 //    img(src := P.subj)
 //  })
 
-  val PersonBasicInfo = ReactComponentB[Props[Person]]("PersonBasicInfo")
+  val PersonBasicInfo = ReactComponentB[Props[Named[Rdf,Person]]]("PersonBasicInfo")
   .initialState(None)
   .render((P,S,B)=>{
-    val p = P.obj
+    val person = P.obj.obj
     val foaf = FOAFPrefix[Rdf]
 
     div(style.basic)(
-      (P.obj.pg/foaf.name).headOption.map(pg=>{
+      (person.pg/foaf.name).headOption.map{pg: PointedGraph[Rdf]=>{
         println("name="+pg.pointer.toString)
-        NAME(RelProp(P.obj.pg,foaf.name,pg,true))
-      }).toSeq,
+        Name(RelProp(Named(P.obj.name,pg),Rel(Triple(person.pg.pointer,foaf.name,pg.pointer)),true))
+      }},
 //      p.name.headOption.map(name => NAME(RelProp(P.obj,foaf.name,name)) getOrElse div(),
     {
-        val n = p.givenName.headOption.getOrElse("(unknown)")
+        val n = person.givenName.headOption.getOrElse("(unknown)")
         div(style.surname, title := n)(n)
       },
-      p.workPlaceHomePage.headOption.map { hp =>
+      person.workPlaceHomePage.headOption.map { hp =>
         div(style.company, title := hp.toString)(hp.toString)
       } getOrElse
         div()
     )
   }).build
 
-  case class NameState(edit: Option[String]=None)
-  class NameBackend($: BackendScope[RelProp,NameState]) {
-    def handleSubmit(e: ReactEventI) = {
-      e.preventDefault()
-      $.state.edit.map { newName =>
-        val oldTriple = Triple($.props.parent.pointer, $.props.rel, $.props.thiz.pointer)
-        val newTriple = Triple($.props.parent.pointer, $.props.rel, Literal(newName))
-        println("remove:"+oldTriple)
-        println("add:"+newTriple)
-      }
-    }
-    def enterEdit(e: ReactEvent) =
-      $.modState(_=>NameState(Some("")))
-
-    def onChange(e: ReactEventI) =
-      $.modState(s => NameState(Some(e.target.value)))
-
-  }
-
-  val NAME = ReactComponentB[RelProp]("PersonName")
-    .initialState(NameState())
-    .backend(new NameBackend(_))
-    .render((P,S,B)=> {
-    val nameOpt = P.thiz.pointer match {
-      case Literal(name, _, _) => Some(name)
-      case _ => None
-    }
-    if (S.edit.isEmpty && nameOpt.isDefined)
-      div(style.name, title := nameOpt.get, onClick ==> B.enterEdit)(nameOpt.get)
-    else {
-      form(onSubmit ==> B.handleSubmit)(
-        input(style.name, tpe := "text", placeholder := "Enter name",
-          value := S.edit.get,
-          onChange ==> B.onChange
-        )
-      )
-    }
-  }).build
-
   def keys(pg: PointedGraph[Rdf]) = pg.pointer.toString
 
-  val PersonMoreInfo =  ReactComponentB[Props[Person]]("PersonMoreInfo")
+  val PersonMoreInfo =  ReactComponentB[Props[Named[Rdf,Person]]]("PersonMoreInfo")
     .initialState(None)
     .render((P,S,B)=> {
-     val p = P.obj
+     val p = P.obj.obj
     div(style.details)(
       div(className:="title",style.centerText,style.titleCase)("Details"),
       ul(style.clearfix,style.span3)(
-        for (tel <- p.phone) yield PhoneInfo.withKey(tel.pg.pointer.toString)(Props(tel)),
-        for (mbox <- p.mbox) yield MailInfo(Props(mbox)),
-        for (hm <- p.home) yield ContactLocationInfo(Props(("home",hm))),
-        for (o <- p.office) yield ContactLocationInfo(Props(("office",o))),
-        for (e <- p.emergency) yield ContactLocationInfo(Props(("emergency",e))),
-        for (hm <- p.mobile) yield ContactLocationInfo(Props(("mobile",hm))),
-        for (acc <- p.account) yield AccountInfo(Props(acc))
+        for (tel <- p.phone) yield PhoneInfo.withKey(tel.pg.pointer.toString)(Props(tel,P.context)),
+        for (mbox <- p.mbox) yield MailInfo(Props(mbox,P.context)),
+        for (hm <- p.home) yield ContactLocationInfo(Props(("home",hm),P.context)),
+        for (o <- p.office) yield ContactLocationInfo(Props(("office",o),P.context)),
+        for (e <- p.emergency) yield ContactLocationInfo(Props(("emergency",e),P.context)),
+        for (hm <- p.mobile) yield ContactLocationInfo(Props(("mobile",hm),P.context)),
+        for (acc <- p.account) yield AccountInfo(Props(acc,P.context))
     )
     )
   }).build
@@ -190,7 +147,7 @@ object Profile {
         span(style.clearfix,style.span3)(
           div(style.titleCase)(homeTp) ,
           for (addr<-cl.address) yield
-           span()(AddressInfo(Props(addr)))
+           span()(AddressInfo(Props(addr,P.context)))
         )
       )
   }).build

@@ -5,28 +5,12 @@
     <title>scalajs-react</title>
     <script type="text/javascript" src="../target/scala-2.11/rww-scala-js-jsdeps.js"></script>
     <script type="text/javascript" src="../target/scala-2.11/rww-scala-js-fastopt.js"></script>
-    <style>
-      section {
-        border-top: solid 1px black;
-        margin-top: 2ex;
-      }
-      section {
-        margin: 3ex 1ex;
-        border: solid 1px #111;
-        background: #f9f9f9;
-        padding: 1ex;
-      }
-      section h3 {margin-top:0; color: #227}
-    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   </head>
-  <body>
-
-    <div id="eg1"></div>
-
-    <script type="text/javascript">
-        window.onload = function() {
-            rww.ui.foaf.TestApp().main()
-        }
-    </script>
+  <body onload="rww.ui.SPAMain().main()">
+  <p>if you do not see this, it is probably because you have JavaScript disabled. This
+  application requires it to run.  We do hope to try to build a backup for non JS
+  enabled clients at some point, though that requires a lot more engineering.</p>
   </body>
 </html>
