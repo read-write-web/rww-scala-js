@@ -36,34 +36,17 @@ object URLBox {
     )
 
 
-  def handleSubmit( props: Props, state: State)(e: ReactEventI) = {
-    ST.retM{
-      e.preventDefaultIO
-    } addCallback IO(
-       { println("hello")
-         state.url.map { uri =>
-          MainRouter.ws.fetch(rww.Rdf.ops.URI(state.urlStr)) //todo: move elswhere
-          props.uri.update(props.uri() + uri) //todo: use the message passing pattern from tutorial?
-         }
-         ()
-       }
-      ).flatMap { _ =>
-      println("in flatMap")
-      MainRouter.router.setIO(MainRouter.pagesLoc(state.url.get))
+  def handleSubmit( props: Props, state: State)(e: ReactEventI) = ST.retM{
+    e.preventDefaultIO
+  } addCallback IO {
+    state.url.map { uri =>
+      MainRouter.ws.fetch(rww.Rdf.ops.URI(state.urlStr)) //todo: move elswhere
+      props.uri.update(props.uri() + uri) //todo: use the message passing pattern from tutorial?
     }
-
-
-    //    >>
-    //      ST.mod { state =>
-    //        state.url.map { uri =>
-    //          MainRouter.ws.fetch(rww.Rdf.ops.URI(state.urlStr)) //todo: move elswhere
-    //          props.uri.update(props.uri() + uri) //todo: use the message passing pattern from tutorial?
-    //        }
-    //        state
-    //      }.liftIO
-
-
-
+    ()
+  }.flatMap { _ =>
+    state.url.map{ uri =>
+      MainRouter.router.setIO(MainRouter.pagesLoc(uri))}.getOrElse(IO())
   }
 
   private val UrlBox = ReactComponentB[Props]("MainMenu")
