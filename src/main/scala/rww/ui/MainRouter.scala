@@ -30,29 +30,32 @@ object MainRouter extends RoutingRules {
   //todo: Web Agent should be passed in constructor. ( but is tricky with router )
   val ws = new WebAgent[Rdf](None)
   val pages = Var(ListSet[URI]())
+
   // build a baseUrl, this method works for both local and server addresses (assuming you use #)
   val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
   // register the modules and store locations
   val dashboardLoc = register(rootLocation(Dashboard.component))
 
-  register(parser { case namePathMatch(url) => url }.thenMatch { url =>
-    ws.cache().get(rww.Rdf.ops.URI(url)) match {
-      case None => redirect(dashboardLoc, Redirect.Push)
-      case Some(npg) => render(Profile(Profile.Props(npg.map(Person(_)), npg.name))) //todo: a mess
-    }
-  })
-  val pagesLoc = dynLink[URI](id => s"#url/${id.toString}")
-  //todo: does one have to urlencode this?
+
   // initialize router and its React component
   val router = routingEngine(baseUrl)
   val routerComponent = componentUnbuilt(router).buildU
+
+  //
   //dynamic route
+  //
   private val namePathMatch = "^#url/(.+)$".r
+  val pagesLoc = dynLink[URI](id => s"#url/${id.toString}")
+  register(parser { case namePathMatch(url) => url }.thenMatch { url =>
+    ws.cache().get(rww.Rdf.ops.URI(url)) match {
+      case None => render(Loading(new java.net.URI(url)))
+      case Some(npg) => render(Profile(Profile.Props(npg.map(Person(_)), npg.name))) //todo: a mess
+    }
+  })
 
   // functions to provide links (<a href...>) to routes
   def dashboardLink = router.link(dashboardLoc)
 
-  //  def todoLink = router.link(todoLoc)
   def routerLink(loc: ApprovedPath[P]) = router.link(loc)
 
   /**
