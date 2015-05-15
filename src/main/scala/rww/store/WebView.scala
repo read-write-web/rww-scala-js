@@ -10,8 +10,9 @@ import scalaz.{-\/, \/, \/-}
  * The state of the web from the agents perspective at a point in time. 
  * This is an immutable object, which can be passed to react to display one state of the web.
  */
-class WebView[Rdf<:RDF](val cache: HashMap[Rdf#URI,\/[Rdf#URI,Rdf#Graph]]=new HashMap[Rdf#URI,\/[Rdf#URI,Rdf#Graph]]())
-                       (implicit ops: RDFOps[Rdf]) {
+class WebView[Rdf <: RDF](val cache: HashMap[Rdf#URI, \/[Rdf#URI, Rdf#Graph]] = new HashMap[Rdf#URI, \/[Rdf#URI, Rdf#Graph]]())
+                         (implicit ops: RDFOps[Rdf]) {
+
   import ops._
 
   /**
@@ -21,7 +22,7 @@ class WebView[Rdf<:RDF](val cache: HashMap[Rdf#URI,\/[Rdf#URI,Rdf#Graph]]=new Ha
    *                 xmlhttp requests follow redirects automatically.
    * @return
    */
-  def get(url: Rdf#URI, maxdepth: Int=1): Option[Named[Rdf,PointedGraph[Rdf]]] =
+  def get(url: Rdf#URI, maxdepth: Int = 1): Option[Named[Rdf, PointedGraph[Rdf]]] =
     if (maxdepth <= 0) None
     else {
       val base = url.fragmentLess
@@ -33,7 +34,7 @@ class WebView[Rdf<:RDF](val cache: HashMap[Rdf#URI,\/[Rdf#URI,Rdf#Graph]]=new Ha
 
   //just to get going
   //returns the new patched WebView if there was anything to patch
-  def vsimplePatch(url: Rdf#URI,add: Rdf#Triple, remove: Rdf#Triple ): Option[WebView[Rdf]] =
+  def vsimplePatch(url: Rdf#URI, add: Rdf#Triple, remove: Rdf#Triple): Option[WebView[Rdf]] =
     cache.get(url).map {
       case -\/(redirect) => WebView.this //todo later
       case \/-(graph) => {

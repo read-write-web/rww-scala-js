@@ -1,9 +1,10 @@
 package rww.ontology
 
+import java.net.{URI => jURI}
+
 import org.w3.banana.PointedGraph
-import rww.Rdf._
 import org.w3.banana.plantain.Plantain.ops._
-import java.net.{URI=>jURI}
+import rww.Rdf._
 
 import scala.util.Try
 
@@ -13,7 +14,7 @@ import scala.util.Try
 case class Mbox(pg: PointedGraph[Rdf]) {
   def asString = {
     val str = pg.pointer match {
-      case Literal(mbox,_,_) => Some(mbox)
+      case Literal(mbox, _, _) => Some(mbox)
       case URI(s) => Some(s)
       case _ => None // could check other relations from here
     }
@@ -22,13 +23,14 @@ case class Mbox(pg: PointedGraph[Rdf]) {
       else s
     }
   }
-  def asURIStr: Option[String] = pg.pointer  match {
+
+  def asURIStr: Option[String] = pg.pointer match {
     case URI(u) => Some(u)
-    case Literal(mboxstr,_,_) => {
+    case Literal(mboxstr, _, _) => {
       val optUriStr = if (mboxstr.startsWith("mailto:")) Some(mboxstr)
-        else if (mboxstr.contains("@")) Some("mailto:"+mboxstr)
-        else None
-      optUriStr.flatMap(mb=>Try(new jURI(mb).toString).toOption)
+      else if (mboxstr.contains("@")) Some("mailto:" + mboxstr)
+      else None
+      optUriStr.flatMap(mb => Try(new jURI(mb).toString).toOption)
     }
   }
 }

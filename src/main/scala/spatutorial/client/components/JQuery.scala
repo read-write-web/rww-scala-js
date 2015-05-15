@@ -18,5 +18,6 @@ trait JQueryStatic extends js.Object {
 
 trait JQuery extends js.Object {
   def on(events: String, selector: js.Any, data: js.Any, handler: js.Function1[JQueryEventObject, js.Any]): JQuery = js.native
+
   def off(events: String): JQuery = js.native
 }

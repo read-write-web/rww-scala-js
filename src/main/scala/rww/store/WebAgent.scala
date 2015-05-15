@@ -14,18 +14,19 @@ import scala.util.Try
 import scalaz.{-\/, \/-}
 
 
-class WebAgent[Rdf<:RDF](proxy: Option[Rdf#URI])
-                        (implicit
-                         ec: ExecutionContext,
-                         ops: RDFOps[Rdf],
-                         reader: RDFReader[Rdf, Try, NTriples]) {
+class WebAgent[Rdf <: RDF](proxy: Option[Rdf#URI])
+                          (implicit
+                           ec: ExecutionContext,
+                           ops: RDFOps[Rdf],
+                           reader: RDFReader[Rdf, Try, NTriples]) {
 
   import ops._
+
   val cache: Var[WebView[Rdf]] = Var(new WebView[Rdf]())
 
   //todo Q: should fetch return anything?
-  def fetch(url: Rdf#URI): Future[Named[Rdf,PointedGraph[Rdf]]] = {
-    println("fetching url "+url.toString)
+  def fetch(url: Rdf#URI): Future[Named[Rdf, PointedGraph[Rdf]]] = {
+    println("fetching url " + url.toString)
     // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
     //and for CORS see http://www.html5rocks.com/en/tutorials/cors/
     val base = url.fragmentLess
@@ -46,10 +47,12 @@ class WebAgent[Rdf<:RDF](proxy: Option[Rdf#URI])
             val graphUrl = redirectURLOpt.map { redirectURLstr =>
               val redirectURL = URI(redirectURLstr)
               if (redirectURL == base) base else redirectURL
-            } getOrElse { base }
+            } getOrElse {
+              base
+            }
 
             cache.update {
-              val cvh = if (graphUrl != base){
+              val cvh = if (graphUrl != base) {
                 cache().cache.updated(base, -\/(graphUrl))
               } else cache().cache
               val cvh2 = cvh.updated(graphUrl, \/-(g))

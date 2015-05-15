@@ -2,26 +2,28 @@ package spatutorial.client.components
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import spatutorial.components.{JQueryEventObject, JQuery}
+import spatutorial.components.{JQuery, JQueryEventObject}
 
 import scala.language.implicitConversions
 import scala.scalajs.js
-import scalacss.ScalaCssReact._
 import scalacss.Defaults._
+import scalacss.ScalaCssReact._
+
 /**
  * Common Bootstrap components for scalajs-react
  */
 object Bootstrap {
+
+  implicit def jq2bootstrap(jq: JQuery): BootstrapJQuery = jq.asInstanceOf[BootstrapJQuery]
 
   // shorthand for styles
   @inline private def bss = GlobalStyles.bootstrapStyles
 
   trait BootstrapJQuery extends JQuery {
     def modal(action: String): BootstrapJQuery = js.native
+
     def modal(options: js.Any): BootstrapJQuery = js.native
   }
-
-  implicit def jq2bootstrap(jq: JQuery): BootstrapJQuery = jq.asInstanceOf[BootstrapJQuery]
 
   // Common Bootstrap contextual styles
   object CommonStyle extends Enumeration {
@@ -30,20 +32,19 @@ object Bootstrap {
 
   object Button {
 
-    case class Props(onClick: () => Unit, style: CommonStyle.Value = CommonStyle.default, addStyles: Seq[StyleA] = Seq())
-
     val component = ReactComponentB[Props]("Button")
       .render { (P, C) =>
       <.button(bss.buttonOpt(P.style), P.addStyles, ^.tpe := "button", ^.onClick --> P.onClick())(C)
     }.build
 
     def apply(props: Props, children: ReactNode*) = component(props, children)
+
     def apply() = component
+
+    case class Props(onClick: () => Unit, style: CommonStyle.Value = CommonStyle.default, addStyles: Seq[StyleA] = Seq())
   }
 
   object Panel {
-
-    case class Props(heading: String, style: CommonStyle.Value = CommonStyle.default)
 
     val component = ReactComponentB[Props]("Panel")
       .render { (P, C) =>
@@ -54,27 +55,13 @@ object Bootstrap {
     }.build
 
     def apply(props: Props, children: ReactNode*) = component(props, children)
+
     def apply() = component
+
+    case class Props(heading: String, style: CommonStyle.Value = CommonStyle.default)
   }
 
   object Modal {
-
-    // header and footer are functions, so that they can get access to the the hide() function for their buttons
-    case class Props(header: (Backend) => ReactNode, footer: (Backend) => ReactNode, closed: () => Unit, backdrop: Boolean = true,
-                     keyboard: Boolean = true)
-
-    class Backend(t: BackendScope[Props, Unit]) {
-      def hide(): Unit = {
-        // instruct Bootstrap to hide the modal
-        jQuery(t.getDOMNode()).modal("hide")
-      }
-
-      // jQuery event handler to be fired when the modal has been hidden
-      def hidden(e: JQueryEventObject): js.Any = {
-        // inform the owner of the component that the modal was closed/hidden
-        t.props.closed()
-      }
-    }
 
     val component = ReactComponentB[Props]("Modal")
       .stateless
@@ -101,6 +88,25 @@ object Bootstrap {
       .build
 
     def apply(props: Props, children: ReactNode*) = component(props, children)
+
     def apply() = component
+
+    // header and footer are functions, so that they can get access to the the hide() function for their buttons
+    case class Props(header: (Backend) => ReactNode, footer: (Backend) => ReactNode, closed: () => Unit, backdrop: Boolean = true,
+                     keyboard: Boolean = true)
+
+    class Backend(t: BackendScope[Props, Unit]) {
+      def hide(): Unit = {
+        // instruct Bootstrap to hide the modal
+        jQuery(t.getDOMNode()).modal("hide")
+      }
+
+      // jQuery event handler to be fired when the modal has been hidden
+      def hidden(e: JQueryEventObject): js.Any = {
+        // inform the owner of the component that the modal was closed/hidden
+        t.props.closed()
+      }
+    }
   }
+
 }

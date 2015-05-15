@@ -27,10 +27,6 @@ object Profile {
                       edit: Boolean = false,
                       editText: String = "Edit")
 
-//  class Backend(t: BackendScope[Unit, PersonProps]) {
-//
-//  }
-
   import rww.ui.foaf.{FoafStyles => style}
 
   val profile = ReactComponentB[Props[Named[Rdf,Person]]]("Profile")
@@ -74,7 +70,6 @@ object Profile {
 
     div(style.basic)(
       (person.pg/foaf.name).headOption.map{pg: PointedGraph[Rdf]=>{
-        println("name="+pg.pointer.toString)
         Name(RelProp(Named(P.obj.name,pg),Rel(Triple(person.pg.pointer,foaf.name,pg.pointer)),true))
       }},
 //      p.name.headOption.map(name => NAME(RelProp(P.obj,foaf.name,name)) getOrElse div(),

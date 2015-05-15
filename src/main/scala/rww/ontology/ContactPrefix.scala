@@ -1,6 +1,6 @@
 package rww.ontology
 
-import org.w3.banana.{PrefixBuilder, RDFOps, RDF}
+import org.w3.banana.{PrefixBuilder, RDF, RDFOps}
 
 /**
  * Created by hjs on 06/05/2015.

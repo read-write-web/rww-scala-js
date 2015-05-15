@@ -11,9 +11,11 @@ case class ContactLocation(pg: PointedGraph[Rdf]) {
 
   val ct = ContactPrefix[Rdf]
 
-  def address = (pg/ct.address) map { Address(_) }
+  def address = (pg / ct.address) map {
+    Address(_)
+  }
 
-  def phone = (pg/ct.mailbox) map (_.pointer) collect {
+  def phone = (pg / ct.mailbox) map (_.pointer) collect {
     case URI(u) => {
       val uu = URI(u)
       uu.getScheme.toLowerCase match {
@@ -21,7 +23,7 @@ case class ContactLocation(pg: PointedGraph[Rdf]) {
         case _ => "(unknown)"
       }
     }
-    case Literal(lexicalForm,xsd.string,_) => lexicalForm
+    case Literal(lexicalForm, xsd.string, _) => lexicalForm
   }
 
 }

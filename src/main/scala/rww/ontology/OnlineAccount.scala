@@ -1,9 +1,10 @@
 package rww.ontology
 
-import org.w3.banana.{RDFSPrefix, FOAFPrefix, PointedGraph}
-import rww.Rdf._
+import java.net.{URI => jURI}
+
 import org.w3.banana.plantain.Plantain.ops._
-import java.net.{URI=>jURI}
+import org.w3.banana.{FOAFPrefix, PointedGraph, RDFSPrefix}
+import rww.Rdf._
 
 import scala.util.Try
 
@@ -15,22 +16,22 @@ case class OnlineAccount(pg: PointedGraph[Rdf]) {
   val foaf = FOAFPrefix[Rdf]
   val rdfs = RDFSPrefix[Rdf]
 
-  def accountName = (pg/foaf.accountName) map (_.pointer) collect {
-    case Literal(lit,_,_) => lit
+  def accountName = (pg / foaf.accountName) map (_.pointer) collect {
+    case Literal(lit, _, _) => lit
   }
 
   def accountServiceHomepage = {
-    val ash = (pg/foaf.accountServiceHomepage) map (_.pointer) collectFirst  {
+    val ash = (pg / foaf.accountServiceHomepage) map (_.pointer) collectFirst {
       case URI(u) => Try(new jURI(u)).toOption
     }
     ash.flatten
   }
 
-  def accountProfilePage = (pg/foaf.homepage) map (_.pointer) collect {
+  def accountProfilePage = (pg / foaf.homepage) map (_.pointer) collect {
     case URI(u) => Try(new jURI(u)).toOption
   }
 
-  def label = (pg/rdfs.label) map (_.pointer) collect {
-    case Literal(label,_,_) => label
+  def label = (pg / rdfs.label) map (_.pointer) collect {
+    case Literal(label, _, _) => label
   }
 }
