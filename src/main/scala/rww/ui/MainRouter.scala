@@ -15,6 +15,8 @@ import rww.ui.foaf.Profile
 import rx._
 import rx.ops._
 
+import scala.collection.immutable.ListSet
+
 
 /**
  * Created by hjs on 13/05/2015.
@@ -27,7 +29,7 @@ object MainRouter extends RoutingRules {
   override protected val notFound = redirect(dashboardLoc, Redirect.Replace)
   //todo: Web Agent should be passed in constructor. ( but is tricky with router )
   val ws = new WebAgent[Rdf](None)
-  val pages = Var(List[URI]())
+  val pages = Var(ListSet[URI]())
   // build a baseUrl, this method works for both local and server addresses (assuming you use #)
   val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
   // register the modules and store locations

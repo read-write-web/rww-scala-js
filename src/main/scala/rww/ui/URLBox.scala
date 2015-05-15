@@ -10,6 +10,7 @@ import rx.Var
 import spatutorial.client.components.Bootstrap.CommonStyle
 import spatutorial.client.components.GlobalStyles
 
+import scala.collection.immutable.ListSet
 import scalacss.ScalaCssReact._
 
 /**
@@ -38,7 +39,7 @@ object URLBox {
 
   @inline private def bss = GlobalStyles.bootstrapStyles
 
-  case class Props(uri: Var[List[URI]])
+  case class Props(uri: Var[ListSet[URI]])
 
   case class State(url: String, errmsg: String = "")
 
@@ -49,7 +50,7 @@ object URLBox {
       try {
         val uri = new URI(t.state.url)
         MainRouter.ws.fetch(rww.Rdf.ops.URI(t.state.url)) //todo: move elswhere
-        t.props.uri.update(uri :: t.props.uri()) //todo: use the message passing pattern from tutorial?
+        t.props.uri.update(t.props.uri()+uri) //todo: use the message passing pattern from tutorial?
       } catch {
         case e: URISyntaxException => {
           t.modState(s => s.copy(errmsg = e.getMessage))

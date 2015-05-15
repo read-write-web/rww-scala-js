@@ -13,6 +13,7 @@ import rx.ops._
 import spatutorial.client.components.Icon._
 import spatutorial.client.components._
 
+import scala.collection.immutable.ListSet
 import scalacss.ScalaCssReact._
 
 /**
@@ -55,7 +56,7 @@ object MainMenu {
   @inline private def bss = GlobalStyles.bootstrapStyles
 
   case class Props(activeLocation: MainRouter.Loc,
-                   pages: List[URI],
+                   pages: ListSet[URI],
                    webview: Rx[WebView[Rdf]])
 
   case class MenuItem(label: (Props) => ReactNode,
