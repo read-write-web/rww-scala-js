@@ -35,9 +35,8 @@ object MainRouter extends RoutingRules {
   private val namePathMatch = "^#url/(.+)$".r
 
   register(parser { case namePathMatch(url) => url }.thenMatch{url =>
-    println("in register.location with url="+url)
-    ws.cache().get(rww.Rdf.ops.URI(url)) match {
-      case None => {println("none"); redirect(dashboardLoc, Redirect.Push)}
+     ws.cache().get(rww.Rdf.ops.URI(url)) match {
+      case None => redirect(dashboardLoc, Redirect.Push)
       case Some(npg) => render(Profile(Profile.Props(npg.map(Person(_)),npg.name)))  //todo: a mess
     }
   })
@@ -116,19 +115,6 @@ object MainRouter extends RoutingRules {
       // currently active module is shown in this container
       <.div(^.className := "container")(ic.element)
     )
-  }
-
-  val pagesObs = pages.foreach { l =>
-    println(l)
-    l.headOption.map{u =>
-      val pl = pagesLoc(u)
-      val bu = baseUrl(pl.path)
-      println("pl="+pl+ "bu="+bu)
-      val r = router.syncToUrl(bu)
-      router.interpret(router.prog(r))
-    }
-//    router.interpret(PushState(AbsUrl(pagesLoc(l.head).path.value)))
-//    router.interpret(BroadcastLocChange)
   }
 
 

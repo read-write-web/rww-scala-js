@@ -45,7 +45,13 @@ object URLBox {
   }
 
   private val URLBox = ReactComponentB[Props]("MainMenu")
-    .initialStateP(p =>State(p.uri().headOption.map(_.toString).getOrElse("")))
+
+    .initialStateP(p =>
+      State(p.uri().headOption.map(_.toString)
+        //make default settable ( not quite as easy as expected, due to typing of router )
+        .getOrElse("http://bblfish.net/people/henry/card#me")
+      )
+    )
     .backend(new Backend(_))
     .render((P, S, B) => {
     <.form(^.onSubmit ==> B.handleSubmit)(
