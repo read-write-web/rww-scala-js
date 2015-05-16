@@ -1,19 +1,17 @@
 package rww.ui
 
-import java.net.URI
+import java.net.{URI=>jURI}
 
 import japgolly.scalajs.react.ScalazReact._
+import japgolly.scalajs.react.extra.Listenable
 import japgolly.scalajs.react.extra.router._
-import japgolly.scalajs.react.extra.{Listenable, OnUnmount}
 import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.{BackendScope, ReactComponentB}
 import org.scalajs
 import rww.Rdf
-import rww.ontology.Person
 import rww.store.WebAgent
-import rww.ui.foaf.Profile
+import rww.ui.util.RxObserver
 import rx._
-import rx.ops._
 
 import scala.collection.immutable.ListSet
 
@@ -29,7 +27,7 @@ object MainRouter extends RoutingRules {
   override protected val notFound = redirect(dashboardLoc, Redirect.Replace)
   //todo: Web Agent should be passed in constructor. ( but is tricky with router )
   val ws = new WebAgent[Rdf](None)
-  val pages = Var(ListSet[URI]())
+  val pages = Var(ListSet[jURI]())
 
   // build a baseUrl, this method works for both local and server addresses (assuming you use #)
   val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
@@ -45,12 +43,12 @@ object MainRouter extends RoutingRules {
   //dynamic route
   //
   private val namePathMatch = "^#url/(.+)$".r
-  val pagesLoc = dynLink[URI](id => s"#url/${id.toString}")
-  register(parser { case namePathMatch(url) => url }.thenMatch { url =>
-    ws.cache().get(rww.Rdf.ops.URI(url)) match {
-      case None => render(Loading(new java.net.URI(url)))
-      case Some(npg) => render(Profile(Profile.Props(npg.map(Person(_)), npg.name))) //todo: a mess
-    }
+  val pagesLoc = dynLink[jURI](id => s"#url/${id.toString}")
+  register(
+    parser { case namePathMatch(url) => url }.thenMatch { urlstr =>
+      import rww.Rdf.ops._
+      val url = URI(urlstr)
+      render(PNGWindow(url,ws.cache))
   })
 
   // functions to provide links (<a href...>) to routes
@@ -95,24 +93,9 @@ object MainRouter extends RoutingRules {
     )
   }
 
-  abstract class RxObserver[BS <: BackendScope[_, _]](scope: BS) extends OnUnmount {
-    def observe[T](rx: Rx[T]): Unit = {
-      val obs = rx.foreach(_ => scope.forceUpdate())
-      // stop observing when unmounted
-      onUnmount(obs.kill())
-    }
-  }
 
   class Backend(t: BackendScope[Unit, router.Loc]) extends RxObserver(t) {
-    def mounted(): Unit = {
-      // hook up to Todo changes
-      val obsItems = pages.foreach { _ => t.forceUpdate() }
-      onUnmount {
-        // stop observing when unmounted (= never in this SPA)
-        obsItems.kill()
-      }
-      //MainDispatcher.dispatch(RefreshTodos)
-    }
+    def mounted(): Unit = observe(pages)
   }
 
 

@@ -1,6 +1,5 @@
 package rww.ui
 
-import java.net.URI
 
 import japgolly.scalajs.react.ReactComponentB
 import japgolly.scalajs.react.extra.LogLifecycle
@@ -14,7 +13,7 @@ import rww.ui.foaf.FoafStyles
  * Created by hjs on 15/05/2015.
  */
 object Loading {
-  val Loading = ReactComponentB[URI]("Profile")
+  val Loading = ReactComponentB[Rdf#URI]("Profile")
     .initialState(None)
     .render((P, S, B) => {
     // import shapeless.singleton.syntax._ <- use this when using styleC
@@ -22,5 +21,5 @@ object Loading {
   })
     .build
 
-  def apply(url: URI) = Loading(url)
+  def apply(url: Rdf#URI) = Loading(url)
 }
