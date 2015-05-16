@@ -24,14 +24,12 @@ object Name {
     }
     if (S.edit.isEmpty && nameOpt.isDefined)
       div(fstyle.name, title := nameOpt.get, onClick ==> B.enterEdit)(nameOpt.get)
-    else {
-      form(onSubmit ==> B.handleSubmit)(
-        input(fstyle.name, tpe := "text", placeholder := "Enter name",
-          value := S.edit.get,
-          onChange ==> B.onChange
-        )
+    else form(onSubmit ==> B.handleSubmit)(
+      input(fstyle.name, tpe := "text", placeholder := "Enter name",
+        value := S.edit.get,
+        onChange ==> B.onChange
       )
-    }
+    )
   }).build
 
   def apply(props: RelProp) = component(props)
@@ -44,10 +42,12 @@ object Name {
       $.state.edit.map { newName =>
         val t = $.props.arc.t
         val newTriple = Triple(t.subject, t.predicate, Literal(newName))
-        MainRouter.ws.vsimplePatch($.props.npg.name, newTriple, t)
+        MainRouter.ws.vsimplePatch($.props.npg.name, newTriple, t).map{_=>
+          //todo: as this should return a future this will need to be changed
+         $.modState(p=>NameState(None))
+        }
         // send a message to x in order to update the graph.
         // we need a named graph so we know where we can send the update
-
       }
 
     }
