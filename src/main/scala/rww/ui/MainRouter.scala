@@ -23,8 +23,6 @@ object MainRouter extends RoutingRules {
 
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
-  // redirect all invalid routes to dashboard
-  override protected val notFound = redirect(dashboardLoc, Redirect.Replace)
   //todo: Web Agent should be passed in constructor. ( but is tricky with router )
   val ws = new WebAgent[Rdf](None)
   val pages = Var(ListSet[jURI]())
@@ -33,6 +31,8 @@ object MainRouter extends RoutingRules {
   val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
   // register the modules and store locations
   val dashboardLoc = register(rootLocation(Dashboard.component))
+  // redirect all invalid routes to dashboard
+  override protected val notFound = redirect(dashboardLoc, Redirect.Replace)
 
 
   // initialize router and its React component

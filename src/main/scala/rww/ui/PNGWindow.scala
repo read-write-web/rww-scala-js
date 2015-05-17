@@ -6,7 +6,8 @@ import japgolly.scalajs.react.vdom.all._
 import rww.Rdf
 import rww.ontology.Person
 import rww.store.WebView
-import rww.ui.foaf.Profile
+import rww.ui.foaf.{PProps, Profile}
+import rww.ui.rdf.NPGPath
 import rww.ui.util.RxObserver
 import rx._
 
@@ -14,7 +15,7 @@ import rx._
  * Pointed Named Graph Window
  */
 object PNGWindow {
-
+  import rww._
   case class Props(pointer: Rdf#URI, cache: Var[WebView[Rdf]])
 
 
@@ -35,7 +36,7 @@ object PNGWindow {
       case Some(npg) => {
         println("Window Profile")
       //here of course one could choose the type of component, depending on the pg
-        Profile(Profile.Props(npg.map(Person(_)), npg.name))
+        Profile(PProps(Person(npg)))
       }
     }
   })

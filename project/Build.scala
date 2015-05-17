@@ -14,7 +14,7 @@ object RwwScalaJS extends Build {
 
   lazy val commonSettings: PE = _.settings(
     organization := "net.bblfish",
-    scalaVersion := "2.11.5",
+    scalaVersion := "2.11.6",
     version := "0.2",
     description := "read write web User Interface in Scala-JS",
     licenses := Seq("Apache License, Version 2.0" -> url("http://opensource.org/licenses/Apache-2.0")),
@@ -59,7 +59,6 @@ object RwwScalaJS extends Build {
         "com.lihaoyi" %%% "utest" % "0.3.1",
         "org.webjars" % "font-awesome" % "4.3.0-1" % Provided,
         "org.webjars" % "bootstrap" % "3.3.2" % Provided,
-        "org.webjars" % "log4javascript" % "1.4.10" / "js/log4javascript_uncompressed.js" ,
         "org.w3" %%% "banana-plantain" % "0.8.2-SNAPSHOT",
         "org.w3" %%% "banana-io-ntriples" % "0.8.2-SNAPSHOT"
 
