@@ -1,10 +1,9 @@
 package rww.ui.foaf
 
-import java.net.{URI => jURI, URISyntaxException}
+import java.net.{URI => jURI}
 
 import japgolly.scalajs.react.ReactComponentB
 import japgolly.scalajs.react.vdom.prefix_<^._
-import org.w3.banana.FOAFPrefix
 import rww.ontology.Person
 import rww.ui.foaf.{FoafStyles => style}
 
@@ -16,9 +15,6 @@ import scalacss.ScalaCssReact._
  */
 object PersonBasicInfo {
     import rww._
-    import rww.Rdf
-    import rww.Rdf.ops
-    import rww.Rdf.ops._
 
     val PersonBasicInfo = ReactComponentB[PProps[Person]]("PersonBasicInfo")
       .initialState(None)

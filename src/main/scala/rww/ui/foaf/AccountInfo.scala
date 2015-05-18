@@ -23,7 +23,7 @@ object AccountInfo {
         case Literal(lit,_,_)=> new jURI(lit)
         case URI(u) => new jURI(u)
       } map { u: jURI =>
-        <.a(^.href := u.toString, style.titleCase)(u.getAuthority)
+        <.a(^.href := u.toString, ^.target := "_blank", style.titleCase)(u.getAuthority)
       },
       <.dl()(
         act.label.toLitStr.headOption.toList.flatMap(t=> List(<.dt("label")(<.dd(t)))),

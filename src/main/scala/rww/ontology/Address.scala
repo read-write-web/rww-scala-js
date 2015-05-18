@@ -20,7 +20,7 @@ case class Address(npg: NPGPath) {
 
   def street1 = npg /-> ct.street
 
-  def street2 = npg /-> ct.street
+  def street2 = npg /-> ct.street2
 
   def street3 = npg /-> ct.street3
 

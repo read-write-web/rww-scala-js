@@ -26,13 +26,12 @@ object NameInfo {
       }
      if (S.edit.isEmpty && nameOpt.isDefined)
       <.div(fstyle.name, ^.title := nameOpt.get, ^.onClick ==> B.enterEdit)(nameOpt.get)
-    else <.p("else")
-// <.form(^.onSubmit ==> B.handleSubmit)(
-//      <.input(fstyle.name, ^.tpe := "text", ^.placeholder := "Enter name",
-//        ^.value := S.edit.get,
-//        ^.onChange ==> B.onChange
-//      )
-//    )
+    else <.form(^.onSubmit ==> B.handleSubmit)(
+      <.input(fstyle.name, ^.tpe := "text", ^.placeholder := "Enter name",
+        ^.value := S.edit.get,
+        ^.onChange ==> B.onChange
+      )
+    )
   }).build
 
   def apply(npg: NPGPath) = {
