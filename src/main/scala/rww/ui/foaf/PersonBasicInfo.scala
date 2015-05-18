@@ -34,7 +34,6 @@ object PersonBasicInfo {
     }).build
 
     def apply(props: PProps[Person]) = {
-      println("in PersonBasicInfo constructor")
       PersonBasicInfo(props)
     }
 }

@@ -30,11 +30,9 @@ object PNGWindow {
     .render((P, S, B) => {
     P.cache().get(P.pointer) match {
       case None => {
-        println("Window: Loading")
         Loading(P.pointer)
       }
       case Some(npg) => {
-        println("Window Profile")
       //here of course one could choose the type of component, depending on the pg
         Profile(PProps(Person(npg)))
       }

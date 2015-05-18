@@ -38,7 +38,7 @@ object Profile {
       PersonMoreInfo(P)
     )
   })
-    .configure(LogLifecycle.verbose)
+//    .configure(LogLifecycle.short)
     .build
 
 

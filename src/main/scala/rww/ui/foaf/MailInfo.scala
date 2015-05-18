@@ -27,7 +27,6 @@ object MailInfo {
   }).build
 
   def apply(mbox: Mbox) = {
-    println("in mail info constructor")
     MailInfo(mbox)
   }
 

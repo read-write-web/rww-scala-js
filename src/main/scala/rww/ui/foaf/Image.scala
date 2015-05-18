@@ -35,7 +35,6 @@ object Image {
   def apply(p: Person) = {
     //this component should be able to capture a number of images, and jump between them
     //the type should perhaps be HasPicture, so that it can be applied much more generally
-     println("in Image constructor")
     component(p.depiction.headOption)
   }
 }

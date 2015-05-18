@@ -15,9 +15,7 @@ object PersonMoreInfo {
   val PersonMoreInfo =  ReactComponentB[PProps[Person]]("PersonMoreInfo")
     .initialState(None)
     .render((P,S,B)=> {
-    println("hello")
       val p = P.obj
-      println("p="+p)
       <.div(style.details)(
         <.div(^.className:="title",style.centerText,style.titleCase)("Details"),
         <.ul(style.clearfix,style.span3)(
@@ -31,7 +29,7 @@ object PersonMoreInfo {
         )
       )
   })
-    .configure(LogLifecycle.verbose)
+//    .configure(LogLifecycle.verbose)
     .build
 
   def apply(p: PProps[Person]) = {

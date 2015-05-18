@@ -26,7 +26,6 @@ class WebAgent[Rdf <: RDF](proxy: Option[Rdf#URI])
 
   //todo Q: should fetch return anything?
   def fetch(url: Rdf#URI): Future[Named[Rdf, PointedGraph[Rdf]]] = {
-    println("fetching url " + url.toString)
     // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
     //and for CORS see http://www.html5rocks.com/en/tutorials/cors/
     val base = url.fragmentLess

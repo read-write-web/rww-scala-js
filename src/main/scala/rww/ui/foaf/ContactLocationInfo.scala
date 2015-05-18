@@ -23,7 +23,6 @@ object ContactLocationInfo {
   }).build
 
   def apply(locationType: String, loc: ContactLocation) = {
-    println("in ContactLocationInfo cons.")
     ContactLocationInfo((locationType,loc))
   }
 }

@@ -27,7 +27,6 @@ object PhoneInfo {
   }).build
 
   def apply(tel: Tel) = {
-    println("In phone info constructor")
     PhoneInfo(tel)
   }
 
