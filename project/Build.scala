@@ -3,13 +3,18 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 import sbt.Keys._
 import sbt._
 
-object ScalajsReact extends Build {
+/**
+ * Application settings. Configure the build for your application here.
+ * You normally don't have to touch the actual build definition after this.
+ */
+
+object RwwScalaJS extends Build {
 
   type PE = Project => Project
 
   lazy val commonSettings: PE = _.settings(
     organization := "net.bblfish",
-    scalaVersion := "2.11.5",
+    scalaVersion := "2.11.6",
     version := "0.2",
     description := "read write web User Interface in Scala-JS",
     licenses := Seq("Apache License, Version 2.0" -> url("http://opensource.org/licenses/Apache-2.0")),
@@ -50,6 +55,10 @@ object ScalajsReact extends Build {
         "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.4",
         "com.github.japgolly.scalacss" %%% "core" % "0.2.0",
         "com.github.japgolly.scalacss" %%% "ext-react" % "0.2.0",
+        "com.lihaoyi" %%% "scalarx" % "0.2.8",
+        "com.lihaoyi" %%% "utest" % "0.3.1",
+        "org.webjars" % "font-awesome" % "4.3.0-1" % Provided,
+        "org.webjars" % "bootstrap" % "3.3.2" % Provided,
         "org.w3" %%% "banana-plantain" % "0.8.2-SNAPSHOT",
         "org.w3" %%% "banana-io-ntriples" % "0.8.2-SNAPSHOT"
 

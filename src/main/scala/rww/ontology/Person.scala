@@ -2,74 +2,51 @@ package rww.ontology
 
 import java.net.{URI => jURI}
 
-import org.w3.banana.plantain.Plantain.ops._
 import org.w3.banana.{FOAFPrefix, PointedGraph}
-import rww.rdf._
+import rww.Rdf
+import rww.ui.rdf.NPGPath
 
 /**
  *
  */
-case class Person(pg: PointedGraph[Rdf])  {
+case class Person(npg: NPGPath) {
   val foaf = FOAFPrefix[Rdf]
   val ct = ContactPrefix[Rdf]
-//  val contact =
+  import rww._
+  //  val contact =
 
-  def name = (pg/foaf.name) map (_.pointer) collect {
-    case Literal(lexicalForm,xsd.string,lang) => lexicalForm
-    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
-  }
-  def nick = (pg/foaf.nick) map (_.pointer) collect {
-    case Literal(lexicalForm,xsd.string,lang) => lexicalForm
-    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
-  }
-  def givenName = (pg/foaf.givenName)++(pg/foaf.givenname) map (_.pointer) collect {
-    case Literal(lexicalForm,xsd.string,lang) => lexicalForm
-    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
-  }
-  def familyName = (pg/foaf.familyName)++(pg/foaf.family_name) map (_.pointer) collect {
-    case Literal(lexicalForm,xsd.string,lang) => lexicalForm
-    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
-  }
-  def firstName =  (pg/foaf.firstName) map (_.pointer) collect {
-    case Literal(lexicalForm,xsd.string,None) => lexicalForm
-    case Literal(lexicalForm,rdf.langString,lang) => lexicalForm
-  }
-  def workPlaceHomePage = (pg/foaf.workplaceHomepage) map (_.pointer) collect {
-    case URI(u) => u
-  }
-  def depiction = (pg/foaf.img)++(pg/foaf.depiction) map (_.pointer) collect {
-    case URI(u) => u
-  }
-  def logo = (pg/foaf.logo) map (_.pointer) collect {
-    case URI(u) => u
-  }
-  
-  def account = (pg/foaf.account)++(pg/foaf.holdsAccount) map { OnlineAccount(_) }
 
-  def mbox = (pg/foaf.mbox) map { Mbox(_) }
+  def name = (npg /-> foaf.name)
 
-  def phone = (pg/foaf.phone) map { Tel(_) }
+  def nick = (npg /-> foaf.nick)
 
-  def office = (pg/ct.office)  collect {
-    case bpg @ PointedGraph(BNode(_),_) => ContactLocation(bpg)
-    case upg @ PointedGraph(URI(_),_)   => ContactLocation(upg)
-    //todo: how problematic is a literal ContactLocation?
+  def givenName = (npg /-> foaf.givenName) ++ (npg /-> foaf.givenname)
+
+  def familyName = (npg /-> foaf.familyName) ++ (npg /-> foaf.family_name)
+
+  def firstName = (npg /-> foaf.firstName)
+
+  def workPlaceHomePage = (npg /-> foaf.workplaceHomepage)
+
+  def depiction = (npg /-> foaf.img) ++ (npg /-> foaf.depiction)
+
+  def logo = (npg /-> foaf.logo)
+
+  def account = (npg /-> foaf.account) ++ (npg /-> foaf.holdsAccount) map {
+    OnlineAccount(_)
   }
-  def home = (pg/ct.home)  collect {
-    case bpg @ PointedGraph(BNode(_),_) => ContactLocation(bpg)
-    case upg @ PointedGraph(URI(_),_)   => ContactLocation(upg)
-    //todo: how problematic is a literal ContactLocation?
-  }
-  def emergency = (pg/ct.emergency)  collect {
-    case bpg @ PointedGraph(BNode(_),_) => ContactLocation(bpg)
-    case upg @ PointedGraph(URI(_),_)   => ContactLocation(upg)
-    //todo: how problematic is a literal ContactLocation?
-  }
-  def mobile = (pg/ct.mobile)  collect {
-    case bpg @ PointedGraph(BNode(_),_) => ContactLocation(bpg)
-    case upg @ PointedGraph(URI(_),_)   => ContactLocation(upg)
-    //todo: how problematic is a literal ContactLocation?
-  }
+
+  def mbox = (npg /-> foaf.mbox) map { Mbox(_) }
+
+  def phone = (npg /-> foaf.phone) map { Tel(_) }
+
+  def office = (npg /-> ct.office) map { ContactLocation(_) }
+
+  def home = (npg /-> ct.home) map { ContactLocation(_) }
+
+  def emergency = (npg /-> ct.emergency) map { ContactLocation(_) }
+
+  def mobile = (npg /-> ct.mobile) map { ContactLocation(_) }
 
 }
 
