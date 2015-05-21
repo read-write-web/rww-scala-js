@@ -2,7 +2,6 @@ package rww.ui.foaf
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import rww.ontology.Person
 import rww.ui.MainRouter
 import rww.ui.rdf.NPGPath
 
@@ -16,39 +15,44 @@ object NameInfo {
   import rww.Rdf.ops._
   import rww.ui.foaf.{FoafStyles => fstyle}
 
-  val component = ReactComponentB[NPGPath]("PersonName")
+  def apply(npg: NPGPath, edit: Boolean) = {
+    //todo: get all the various pieces of name out
+    component(PProps(npg,edit))
+  }
+
+
+  val component = ReactComponentB[PProps[NPGPath]]("PersonName")
     .initialState(State())
     .backend(new NameBackend(_))
     .render((P, S, B) => {
-      val nameOpt = P.pg.pointer match {
+      val nameNpg = P.about
+      val nameOpt: Option[String] = nameNpg.target.obj.pointer match {
         case Literal(name, _, _) => Some(name)
         case _ => None
       }
-     if (S.edit.isEmpty && nameOpt.isDefined)
-      <.div(fstyle.name, ^.title := nameOpt.get, ^.onClick ==> B.enterEdit)(nameOpt.get)
-    else <.form(^.onSubmit ==> B.handleSubmit)(
+     if (!P.edit || S.edit.isEmpty && nameOpt.isDefined)
+      <.div(fstyle.name, ^.title := nameOpt.getOrElse(""), ^.onClick ==> B.enterEdit) {
+          nameOpt.getOrElse[String]("") //<- todo: does not compile without the [String]
+      }
+    else <.form( ^.onSubmit ==> B.handleSubmit )(
       <.input(fstyle.name, ^.tpe := "text", ^.placeholder := "Enter name",
-        ^.value := S.edit.get,
+        ^.value := S.edit.getOrElse(""),
         ^.onChange ==> B.onChange
       )
     )
   }).build
 
-  def apply(npg: NPGPath) = {
-    //todo: get all the various pieces of name out
-    component(npg)
-  }
 
   case class State(edit: Option[String] = None)
 
-  class NameBackend($: BackendScope[NPGPath, State]) {
+  class NameBackend($: BackendScope[PProps[NPGPath], State]) {
     def handleSubmit(e: ReactEventI) = {
       e.preventDefault()
       $.state.edit.map { newName =>
-        $.props.path.headOption.map{ arc =>
+        $.props.about.path.headOption.map{ arc =>
           val removeTriple = arc.arrow.rel
           val newTriple = Triple(removeTriple.subject, removeTriple.predicate, Literal(newName))
-          MainRouter.ws.vsimplePatch($.props.target.name, newTriple, removeTriple).map { _ =>
+          MainRouter.ws.vsimplePatch($.props.about.target.name, newTriple, removeTriple).map { _ =>
             //todo: as this should return a future this will need to be changed
             $.modState(p => State(None))
           }
@@ -60,9 +64,9 @@ object NameInfo {
       }
     }
 
-    def enterEdit(e: ReactEvent) =
-      $.modState(_ => State(Some("")))
-
+    def enterEdit(e: ReactEvent) = {
+      if ($.props.edit) $.modState(_ => State(Some("")))
+    }
     def onChange(e: ReactEventI) =
       $.modState(s => State(Some(e.target.value)))
 

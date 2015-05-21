@@ -179,6 +179,7 @@ object FoafStyles extends StyleSheet.Inline {
     width(100 %%),
     minWidth(1000 px),
     margin(0 px),
+    marginTop(20 px),
     padding(0 px),
     height(100 %%),
     fontFamily := "'Noto Sans', sans-serif",
@@ -191,4 +192,13 @@ object FoafStyles extends StyleSheet.Inline {
     textOverflow := "ellipsis",
     overflow.hidden
   )
+
+
+//  val submitButton = style (
+//    hover,
+//    boxShadow:="none",
+//    outline.none,
+//    background(green),
+//    twist(-5deg, 1.1);
+//    )
 }

@@ -17,11 +17,11 @@ object Image {
   import rww.ui.foaf.{FoafStyles => fstyle}
   import rww.Rdf.ops._
   
-  val component = ReactComponentB[Option[NPGPath]]("Image")
+  val component = ReactComponentB[PProps[Option[NPGPath]]]("Image")
     .initialState(())
 //  .backend(new Backend(_))
     .render((P, S, B) => {
-    val nameOpt = P.flatMap {
+    val nameOpt = P.about.flatMap {
       _.pg.pointer match {
         case URI(u) => Some(u)
         case _ => None
@@ -32,9 +32,9 @@ object Image {
     )
   }).build
 
-  def apply(p: Person) = {
+  def apply(p: Person, edit: Boolean) = {
     //this component should be able to capture a number of images, and jump between them
     //the type should perhaps be HasPicture, so that it can be applied much more generally
-    component(p.depiction.headOption)
+    component(PProps(p.depiction.headOption,edit))
   }
 }

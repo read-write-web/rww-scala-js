@@ -26,7 +26,7 @@ object MailInfo {
     )
   }).build
 
-  def apply(mbox: Mbox) = {
+  def apply(mbox: Mbox, edit: Boolean=false) = {
     MailInfo(mbox)
   }
 

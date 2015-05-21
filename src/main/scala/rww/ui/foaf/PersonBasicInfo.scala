@@ -19,9 +19,9 @@ object PersonBasicInfo {
     val PersonBasicInfo = ReactComponentB[PProps[Person]]("PersonBasicInfo")
       .initialState(None)
       .render((P,S,B)=>{
-        val person = P.obj
+        val person = P.about
         <.div(style.basic)(
-          person.name.headOption.map(NameInfo(_)).toList,
+          person.name.headOption.map(NameInfo(_,P.edit)),
 //          p.name.headOption.map(name => NAME(RelProp(P.obj,foaf.name,name)) getOrElse div(),
           {
             val n = person.givenName.toLitStr.headOption.getOrElse("(anonymous)")
@@ -33,7 +33,7 @@ object PersonBasicInfo {
       )
     }).build
 
-    def apply(props: PProps[Person]) = {
-      PersonBasicInfo(props)
+    def apply(person: Person, edit: Boolean) = {
+      PersonBasicInfo(PProps(person,edit))
     }
 }

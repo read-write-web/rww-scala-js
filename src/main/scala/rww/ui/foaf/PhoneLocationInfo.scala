@@ -13,7 +13,7 @@ object PhoneLocationInfo {
   val ContactLocationInfo = ReactComponentB[PProps[(String,ContactLocation)]]("ContactLocationInfo")
     .initialState(None)
     .render((P,S,B)=> {
-    val (homeTp,cl) = P.obj
+    val (homeTp,cl) = P.about
     li()(
       span(style.clearfix,style.span3)(
         div(style.titleCase)(homeTp) ,

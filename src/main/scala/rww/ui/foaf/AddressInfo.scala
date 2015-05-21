@@ -15,7 +15,7 @@ object AddressInfo {
   val AddressInfo = ReactComponentB[PProps[Address]]("AddressInfo")
     .initialState(None)
     .render((P,S,B)=> {
-    val a = P.obj
+    val a = P.about
     <.div(style.content){
       val c = a.street.toLitStr.toList:::
         List(a.city.toLitStr.headOption.map(_+" ").getOrElse("")+

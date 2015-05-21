@@ -15,25 +15,25 @@ object PersonMoreInfo {
   val PersonMoreInfo =  ReactComponentB[PProps[Person]]("PersonMoreInfo")
     .initialState(None)
     .render((P,S,B)=> {
-      val p = P.obj
+      val p = P.about
       <.div(style.details)(
         <.div(^.className:="title",style.centerText,style.titleCase)("Details"),
         <.ul(style.clearfix,style.span3)(
-          p.phone.map( PhoneInfo(_) ),
-          p.mbox.map( MailInfo(_) ),
-          p.home.map( ContactLocationInfo("home", _) ),
-          p.office.map ( ContactLocationInfo("office", _) ),
-          p.emergency.map ( ContactLocationInfo("emergency", _) ),
-          p.mobile.map ( ContactLocationInfo("mobile", _) ),
-          p.account.map ( AccountInfo(_) )
+          p.phone map ( PhoneInfo(_,P.edit) ),
+          p.mbox map ( MailInfo(_,P.edit) ),
+          p.home map ( ContactLocationInfo("home", _, P.edit) ),
+          p.office map ( ContactLocationInfo("office", _, P.edit) ),
+          p.emergency map ( ContactLocationInfo("emergency", _, P.edit) ),
+          p.mobile map ( ContactLocationInfo("mobile", _, P.edit) ),
+          p.account map ( AccountInfo(_, P.edit) )
         )
       )
   })
 //    .configure(LogLifecycle.verbose)
     .build
 
-  def apply(p: PProps[Person]) = {
+  def apply(p: Person, edit: Boolean) = {
     println("in PersonMoreInfo constructor")
-    PersonMoreInfo(p)
+    PersonMoreInfo(PProps(p,edit))
   }
 }

@@ -10,10 +10,10 @@ import rww.ui.foaf.{FoafStyles => style}
  * Created by hjs on 17/05/2015.
  */
 object ContactLocationInfo {
-  val ContactLocationInfo = ReactComponentB[(String,ContactLocation)]("ContactLocationInfo")
+  val ContactLocationInfo = ReactComponentB[PProps[(String,ContactLocation)]]("ContactLocationInfo")
     .initialState(None)
     .render((P,S,B)=> {
-    val (homeTp,cl) = P
+    val (homeTp,cl) = P.about
     <.li()(
       <.span(style.clearfix,style.span3)(
         <.div(style.titleCase)(homeTp) ,
@@ -22,7 +22,7 @@ object ContactLocationInfo {
     )
   }).build
 
-  def apply(locationType: String, loc: ContactLocation) = {
-    ContactLocationInfo((locationType,loc))
+  def apply(locationType: String, loc: ContactLocation, edit: Boolean=false) = {
+    ContactLocationInfo(PProps((locationType,loc),edit))
   }
 }

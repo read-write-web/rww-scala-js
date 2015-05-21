@@ -26,7 +26,7 @@ object PhoneInfo {
     )
   }).build
 
-  def apply(tel: Tel) = {
+  def apply(tel: Tel, edit: Boolean) = {
     PhoneInfo(tel)
   }
 

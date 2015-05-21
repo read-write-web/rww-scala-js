@@ -1,41 +1,56 @@
 package rww.ui.foaf
 
-import japgolly.scalajs.react.ReactComponentB
-import japgolly.scalajs.react.extra.LogLifecycle
-import japgolly.scalajs.react.vdom.all._
+import japgolly.scalajs.react._
+import japgolly.scalajs.react.vdom.prefix_<^._
 import org.w3.banana.PointedGraph
 import rww.ontology._
+import rww.ui.rdf.NPGPath
 
 import scalacss.ScalaCssReact._
 
 
-case class PProps[O](obj: O,
-                    edit: Boolean = false,
-                    editText: String = "Edit")
+case class PProps[O](about: O,
+                    edit: Boolean = false)
 
 object Profile {
 
-  def apply(props: PProps[Person]) = {
-    profile(props)
+  def apply(person: Person) = {
+    profile(person)
   }
 
   import rww._
 
   case class RelProps(subj: PointedGraph[Rdf], rel: Rdf#URI, thizs: Seq[PointedGraph[Rdf]])
+  case class State(edit: Boolean=false) {
+    def text = if (!edit) "Edit" else "Save"
+  }
+  class ProfileBackend($: BackendScope[Person, State]) {
 
+    def handleSubmit(e: ReactEventI) = {
+      e.preventDefault()
+      $.modState(s=>State(!s.edit))
+    }
+    def handleCancel(e: ReactEventI) = {
+      e.preventDefault()
+      $.modState(_=>State())
+    }
+  }
 
   import rww.ui.foaf.{FoafStyles => style}
 
-  val profile = ReactComponentB[PProps[Person]]("Profile")
-    .initialState(None)
+  val profile = ReactComponentB[Person]("Profile")
+    .initialState(State())
+    .backend(new ProfileBackend(_))
     .render((P, S, B) => {
-    val person = P.obj
     // import shapeless.singleton.syntax._ <- use this when using styleC
-    if (P.edit) p("in edit mode")
-    else div(style.clearfix,style.center,style.body)(
-      Image(person),
-      PersonBasicInfo(P),
-      PersonMoreInfo(P)
+    <.div(style.clearfix,style.center,style.body)(
+      <.div(style.editProfile, ^.onClick==> B.handleSubmit)(
+        S.text,
+        if (S.edit) <.a(^.onClick==>B.handleCancel)("cancel") else EmptyTag
+      ),
+      Image(P,S.edit),
+      PersonBasicInfo(P,S.edit),
+      PersonMoreInfo(P,S.edit)
     )
   })
 //    .configure(LogLifecycle.short)
