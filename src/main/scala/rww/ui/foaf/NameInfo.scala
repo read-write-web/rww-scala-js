@@ -31,10 +31,8 @@ object NameInfo {
         case _ => None
       }
      if (!P.edit || S.edit.isEmpty && nameOpt.isDefined)
-      <.div(fstyle.name, ^.title := nameOpt.getOrElse(""), ^.onClick ==> B.enterEdit) {
-          nameOpt.getOrElse[String]("") //<- todo: does not compile without the [String]
-      }
-    else <.form( ^.onSubmit ==> B.handleSubmit )(
+      <.div(fstyle.name, ^.title := nameOpt, ^.onClick ==> B.enterEdit) (nameOpt)
+     else <.form( ^.onSubmit ==> B.handleSubmit )(
       <.input(fstyle.name, ^.tpe := "text", ^.placeholder := "Enter name",
         ^.value := S.edit.getOrElse(""),
         ^.onChange ==> B.onChange
