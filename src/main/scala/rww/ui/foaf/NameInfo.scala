@@ -30,11 +30,11 @@ object NameInfo {
         case Literal(name, _, _) => Some(name)
         case _ => None
       }
-     if (!P.edit || S.edit.isEmpty && nameOpt.isDefined)
+     if (!P.edit || (S.edit.isEmpty && nameOpt.isDefined))
       <.div(fstyle.name, ^.title := nameOpt, ^.onClick ==> B.enterEdit) (nameOpt)
      else <.form( ^.onSubmit ==> B.handleSubmit )(
       <.input(fstyle.name, ^.tpe := "text", ^.placeholder := "Enter name",
-        ^.value := S.edit.getOrElse(""),
+        ^.value := S.edit,
         ^.onChange ==> B.onChange
       )
     )
@@ -52,7 +52,7 @@ object NameInfo {
           val newTriple = Triple(removeTriple.subject, removeTriple.predicate, Literal(newName))
           MainRouter.ws.vsimplePatch($.props.about.target.name, newTriple, removeTriple).map { _ =>
             //todo: as this should return a future this will need to be changed
-            $.modState(p => State(None))
+            $.setState(State())
           }
         } getOrElse {
           println("warning: path did not have an origin")
@@ -63,7 +63,7 @@ object NameInfo {
     }
 
     def enterEdit(e: ReactEvent) = {
-      if ($.props.edit) $.modState(_ => State(Some("")))
+      if ($.props.edit) $.setState(State(Some("")))
     }
     def onChange(e: ReactEventI) =
       $.modState(s => State(Some(e.target.value)))
