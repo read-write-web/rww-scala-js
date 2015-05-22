@@ -51,7 +51,7 @@
 //  //start with a locally built graph, find picture
 //  def example() = {
 //    val graph = (
-//      bbl -- foaf.depiction ->- "hello"
+//      bbl -- foaf.name ->- "Henry"
 //        -- foaf.depiction ->- URI("http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg")
 //        -- foaf.depiction ->- URI("http://bblfish.net/pix/bfish.large.jpg")
 //      ).graph

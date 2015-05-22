@@ -7,7 +7,10 @@ import rww.rdf.Named
 import scalaz.NonEmptyList
 
 
-/** direction of a relation, either forward or reversed */
+/**
+ * direction of a relation, either forward or reversed.
+ * TODO: do we perhaps just need a pointed Triple?
+ **/
 sealed trait Direction[T] {
   def rel: T
 }

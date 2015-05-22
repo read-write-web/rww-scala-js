@@ -21,11 +21,10 @@ object PersonBasicInfo {
       .render((P,S,B)=>{
         val person = P.about
         <.div(style.basic)(
-          person.name.headOption.map(NameInfo(_,P.edit)),
+          person.name.headOption.map(EditableTextField(_,P.edit,"name",style.name)),
 //          p.name.headOption.map(name => NAME(RelProp(P.obj,foaf.name,name)) getOrElse div(),
           {
-            val n = person.givenName.toLitStr.headOption.getOrElse("(anonymous)")
-            <.div(style.surname, ^.title := n)(n)
+            person.givenName.headOption.map(EditableTextField(_,P.edit,"given name",style.surname))
           },
           person.workPlaceHomePage.toUriStr.map( host => Try( new jURI(host)  )) collectFirst {
             case Success(u) => <.div(style.company, ^.title := u.getHost)(u.getHost)
