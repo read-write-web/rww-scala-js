@@ -56,7 +56,6 @@ object URLBox {
       .getOrElse("http://bblfish.net/people/henry/card#me")
     )
     )
-    .backend(new Backend(_))
     .renderS((P, _, S) =>
     <.form(^.onSubmit ~~> P._runState(handleSubmit(P.props,S)))(
       <.input(^.`type` := "text", ^.onChange ~~> P._runState(onChange), bss.formControl,
@@ -73,15 +72,6 @@ object URLBox {
 
   case class State(urlStr: String, errmsg: String = "") {
     def url: Option[URI] = Try(new java.net.URI(urlStr)).toOption
-  }
-
-  class Backend(t: BackendScope[Props, State]) extends OnUnmount {
-
-
-//    def clearInput(e: ReactEvent) =
-//      t.modState(_ => State(""))
-
-
   }
 
 }
