@@ -26,14 +26,7 @@ object URLBox {
 
 
   def onChange(e: ReactEventI) =
-    ST.mod(state =>
-      try {
-        val uri = new URI(state.urlStr)
-        State(e.target.value)
-      } catch {
-        case err: URISyntaxException =>  State(e.target.value, err.getMessage)
-      }
-    )
+    ST.mod(state => State(e.target.value))
 
 
   def handleSubmit( props: Props, state: State)(e: ReactEventI) = ST.retM{
@@ -60,7 +53,7 @@ object URLBox {
     <.form(^.onSubmit ~~> P._runState(handleSubmit(P.props,S)))(
       <.input(^.`type` := "text", ^.onChange ~~> P._runState(onChange), bss.formControl,
         ^.placeholder := "Enter/Paste URL to object", ^.value := S.urlStr),
-      <.span(bss.alert(CommonStyle.warning), bss.pullRight, (S.errmsg == "") ?= ^.visibility.hidden)(S.errmsg), <.br(),
+      <.span(bss.alert(CommonStyle.warning), bss.pullRight, (S.url.isSuccess) ?= ^.visibility.hidden)(S.url.failed.map(_.getMessage ).toOption), <.br(),
       <.input(^.`type` := "submit", bss.buttonXS)
     )
   ).build
@@ -70,8 +63,8 @@ object URLBox {
 
   case class Props(uri: Var[ListSet[URI]])
 
-  case class State(urlStr: String, errmsg: String = "") {
-    def url: Option[URI] = Try(new java.net.URI(urlStr)).toOption
+  case class State(urlStr: String) {
+    val url = Try(new java.net.URI(urlStr))
   }
 
 }
