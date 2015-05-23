@@ -1,11 +1,9 @@
 package rww.ui.foaf
 
-import java.util.regex.PatternSyntaxException
-
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import rww.ui.MainRouter
-import rww.ui.rdf.{Rev, Rel, NPGPath}
+import rww.ui.rdf.NPGPath
 
 import scalacss.ScalaCssReact._
 import scalacss.StyleA
@@ -64,7 +62,7 @@ object EditableTextField {
         $.props.text.path.headOption.map{ arc =>
           val removeTriple = arc.arrow.rel
           val newTriple = Triple(removeTriple.subject, removeTriple.predicate, Literal(newName))
-          MainRouter.ws.vsimplePatch($.props.text.target.name, newTriple, removeTriple).map { _ =>
+          MainRouter.ws.vsimplePatch($.props.text.target.name, newTriple, removeTriple) map { _ =>
             //todo: as this should return a future this will need to be changed
             $.setState(State())
           }

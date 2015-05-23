@@ -21,11 +21,11 @@ object PersonBasicInfo {
       .render((P,S,B)=>{
         val person = P.about
         <.div(style.basic)(
+          //todo: what should one do with multiple fields?
           person.name.headOption.map(EditableTextField(_,P.edit,"name",style.name)),
-//          p.name.headOption.map(name => NAME(RelProp(P.obj,foaf.name,name)) getOrElse div(),
-          {
-            person.givenName.headOption.map(EditableTextField(_,P.edit,"given name",style.surname))
-          },
+          //todo: idem
+          person.givenName.headOption.map(EditableTextField(_,P.edit,"given name",style.surname)),
+          //todo: can one extend the EditableTextField for URIs?
           person.workPlaceHomePage.toUriStr.map( host => Try( new jURI(host)  )) collectFirst {
             case Success(u) => <.div(style.company, ^.title := u.getHost)(u.getHost)
           } getOrElse <.div()
