@@ -1,11 +1,10 @@
 package rww.ui
 
 
-import java.net.{URI, URISyntaxException}
+import java.net.URI
 
 import japgolly.scalajs.react.ScalazReact._
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.prefix_<^._
 import rx.Var
 import spatutorial.client.components.Bootstrap.CommonStyle
@@ -49,9 +48,9 @@ object URLBox {
       .getOrElse("http://bblfish.net/people/henry/card#me")
     )
     )
-    .renderS((P, _, S) =>
-    <.form(^.onSubmit ~~> P._runState(handleSubmit(P.props,S)))(
-      <.input(^.`type` := "text", ^.onChange ~~> P._runState(onChange), bss.formControl,
+    .renderS(($, P, S) =>
+    <.form(^.onSubmit ~~> $._runState(handleSubmit(P,S)))(
+      <.input(^.`type` := "text", ^.onChange ~~> $._runState(onChange), bss.formControl,
         ^.placeholder := "Enter/Paste URL to object", ^.value := S.urlStr),
       <.span(bss.alert(CommonStyle.warning), bss.pullRight, (S.url.isSuccess) ?= ^.visibility.hidden)(S.url.failed.map(_.getMessage ).toOption), <.br(),
       <.input(^.`type` := "submit", bss.buttonXS)

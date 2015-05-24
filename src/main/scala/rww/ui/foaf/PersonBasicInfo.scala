@@ -4,8 +4,11 @@ import java.net.{URI => jURI}
 
 import japgolly.scalajs.react.ReactComponentB
 import japgolly.scalajs.react.vdom.prefix_<^._
+import org.w3.banana.PointedGraph
 import rww.ontology.Person
+import rww.rdf.Named
 import rww.ui.foaf.{FoafStyles => style}
+import rww.ui.rdf.NPGPath
 
 import scala.util.{Success, Try}
 import scalacss.ScalaCssReact._
@@ -15,6 +18,7 @@ import scalacss.ScalaCssReact._
  */
 object PersonBasicInfo {
     import rww._
+    import Rdf.ops._
 
     val PersonBasicInfo = ReactComponentB[PProps[Person]]("PersonBasicInfo")
       .initialState(None)
@@ -22,13 +26,14 @@ object PersonBasicInfo {
         val person = P.about
         <.div(style.basic)(
           //todo: what should one do with multiple fields?
-          person.name.headOption.map(EditableTextField(_,P.edit,"name",style.name)),
+          person.name.headOption.map(TextField(_,P.edit,"name",style.name)),
           //todo: idem
-          person.givenName.headOption.map(EditableTextField(_,P.edit,"given name",style.surname)),
+          person.givenName.headOption.map(TextField(_,P.edit,"given name",style.surname)),
           //todo: can one extend the EditableTextField for URIs?
-          person.workPlaceHomePage.toUriStr.map( host => Try( new jURI(host)  )) collectFirst {
-            case Success(u) => <.div(style.company, ^.title := u.getHost)(u.getHost)
-          } getOrElse <.div()
+          person.workPlaceHomePage collectFirst {
+            case npg @ NPGPath(Named(_,PointedGraph(URI(u),_)),_)  =>
+              URLField(npg,P.edit,"work place home page",style.company)
+          }
       )
     }).build
 

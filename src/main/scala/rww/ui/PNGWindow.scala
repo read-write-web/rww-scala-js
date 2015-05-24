@@ -1,5 +1,6 @@
 package rww.ui
 
+import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.{BackendScope, ReactComponentB}
 import rww.ontology.Person
 import rww.store.WebView
@@ -35,6 +36,7 @@ object PNGWindow {
     }
   })
     .componentDidMount(_.backend.mounted)
+    .configure(OnUnmount.install)
     .build
 
   def apply(pointer: Rdf#URI, cache: Var[WebView[Rdf]]) =

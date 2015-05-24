@@ -33,7 +33,6 @@ object PersonMoreInfo {
     .build
 
   def apply(p: Person, edit: Boolean) = {
-    println("in PersonMoreInfo constructor")
     PersonMoreInfo(PProps(p,edit))
   }
 }
