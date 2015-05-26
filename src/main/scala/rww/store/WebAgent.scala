@@ -3,7 +3,7 @@ package rww.store
 import java.io.StringReader
 
 import org.scalajs.dom.ext.Ajax
-import org.w3.banana.io.{NTriples, RDFReader}
+import org.w3.banana.io._
 import org.w3.banana.{PointedGraph, RDF, RDFOps}
 import rww.rdf.Named
 import rx.Var
@@ -18,7 +18,9 @@ class WebAgent[Rdf <: RDF](proxy: Option[Rdf#URI])
                           (implicit
                            ec: ExecutionContext,
                            ops: RDFOps[Rdf],
-                           reader: RDFReader[Rdf, Try, NTriples]) {
+                           rdrNT:  RDFReader[Rdf, Try, NTriples],
+                           rdrTurtle:  RDFReader[Rdf, Future, Turtle],
+                           rdrJSONLD: RDFReader[Rdf, Future, JsonLd]) {
 
   import ops._
 
@@ -34,14 +36,22 @@ class WebAgent[Rdf <: RDF](proxy: Option[Rdf#URI])
       case Some(res) => Future.successful(res)
       case None => Ajax.get(
         base.toString,
-        headers = Map("Accept" -> "application/n-triples")
+        headers = Map("Accept" -> "application/n-triples,application/ld+json;q=0.8,text/turtle;q=0.8")
       ) flatMap { xhr =>
         // responseURL is quite new. See https://xhr.spec.whatwg.org/#the-responseurl-attribute
         // hence need for UndefOr
         // todo: to remove dynamic use need to fix https://github.com/scala-js/scala-js-dom/issues/111
         val redirectURLOpt = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[js.UndefOr[String]]
-        val tryNamed = for {
-          g <- reader.read(new StringReader(xhr.responseText), base.toString)
+        val rh = xhr.getResponseHeader("Content-Type")
+        println("Content-Type: "+rh)
+        val reader = new StringReader(xhr.responseText)
+        for {
+          g <-  rh.takeWhile(_ != ';') match {
+            case "application/n-triples" => rdrNT.read(reader, base.toString).asFuture
+            case "application/ld+json" => rdrJSONLD.read(reader,base.toString)
+            case "text/turtle" => rdrTurtle.read(reader,base.toString)
+            case _ => Future.failed(new Exception("could not find parser for "+rh))
+          }
         } yield {
             val graphUrl = redirectURLOpt.map { redirectURLstr =>
               val redirectURL = URI(redirectURLstr)
@@ -49,7 +59,6 @@ class WebAgent[Rdf <: RDF](proxy: Option[Rdf#URI])
             } getOrElse {
               base
             }
-
             cache.update {
               val cvh = if (graphUrl != base) {
                 cache().cache.updated(base, -\/(graphUrl))
@@ -59,7 +68,6 @@ class WebAgent[Rdf <: RDF](proxy: Option[Rdf#URI])
             }
             Named(url, PointedGraph[Rdf](url, g))
           }
-        tryNamed.asFuture
       }
     }
   }

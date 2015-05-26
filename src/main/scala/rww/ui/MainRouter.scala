@@ -22,6 +22,7 @@ import scala.collection.immutable.ListSet
 object MainRouter extends RoutingRules {
 
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+  import rww._
 
   //todo: Web Agent should be passed in constructor. ( but is tricky with router )
   val ws = new WebAgent[Rdf](None)

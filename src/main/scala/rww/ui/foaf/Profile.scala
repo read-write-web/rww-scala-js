@@ -50,7 +50,8 @@ object Profile {
       ),
       Image(P,S.edit),
       PersonBasicInfo(P,S.edit),
-      PersonMoreInfo(P,S.edit)
+      PersonMoreInfo(P,S.edit),
+      FOAFInfo(P)
     )
   })
 //    .configure(LogLifecycle.short)

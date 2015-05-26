@@ -51,16 +51,22 @@ object FoafStyles extends StyleSheet.Inline {
   }
 
   //same as above but unsafe
-  val pic = style(
-    width(300 px),
-    height(300 px),
+  val pictureUnsafe = style(
+    width(200 px),
+    height(200 px),
     borderRadius(50 %%),
     overflow.hidden,
-    float.right,
+    position.absolute,
+    right(35 px),
     unsafeChild("img")(
-      width(100 %%),
-      height.auto
+      width(110 %%),
+      height.initial
     )
+  )
+
+  //small profile pix
+  val pix = style(
+
   )
 
 
@@ -118,7 +124,7 @@ object FoafStyles extends StyleSheet.Inline {
     unsafeChild("ul")(
       padding.`0`,
       display.flex,
-      height(200 px),
+//      height(200 px),
       //      maxWidth(100 %%),
       //      flexDirection.column,
       flexWrap.wrap,
@@ -183,7 +189,8 @@ object FoafStyles extends StyleSheet.Inline {
     padding(0 px),
     height(100 %%),
     fontFamily := "'Noto Sans', sans-serif",
-    fontSize(1 em)
+    fontSize(1 em),
+    position.relative
   )
 
   val content = style(
@@ -193,6 +200,40 @@ object FoafStyles extends StyleSheet.Inline {
     overflow.hidden
   )
 
+  val contacts = style(
+    display.flex,
+    padding(0 px),
+    //      height(200 px),
+    //      maxWidth(100 %%),
+    //      flexDirection.column,
+    flexWrap.wrap
+  )
+
+  val contact = style(
+    alignSelf.auto,
+    height(150 px),
+//    padding(0 px),
+    backgroundColor(lightestGrey)
+  )
+
+  val contactName = style(
+//    backgroundColor.blue,
+    padding( 7 px, 10 px),
+    margin(30 px, 0 px, 0 px, 0 px)
+//    color.white
+  )
+
+  val contactPix = style(
+    width(60 px),
+    height(60 px),
+    overflow.hidden,
+    float.right,
+
+    unsafeChild("img")(
+      width(100 %%),
+      height.auto
+    )
+  )
 
 //  val submitButton = style (
 //    hover,

@@ -27,7 +27,7 @@ object Image {
         case _ => None
       }
     }
-    div(fstyle.pic)(
+    div(fstyle.pictureUnsafe)(
       img(src := nameOpt.getOrElse("avatar-man.png"))
     )
   }).build

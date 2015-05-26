@@ -20,9 +20,9 @@ case class Person(npg: NPGPath) {
 
   def nick = (npg /-> foaf.nick)
 
-  def givenName = (npg /-> foaf.givenName) ++ (npg /-> foaf.givenname)
+  def givenName = (npg /-> foaf.givenName) ++ (npg /-> foaf.givenname) ++ firstName
 
-  def familyName = (npg /-> foaf.familyName) ++ (npg /-> foaf.family_name)
+  def familyName = (npg /-> foaf.familyName) ++ (npg /-> foaf.family_name) ++ (npg /-> foaf.surname)
 
   def firstName = (npg /-> foaf.firstName)
 
@@ -47,6 +47,8 @@ case class Person(npg: NPGPath) {
   def emergency = (npg /-> ct.emergency) map { ContactLocation(_) }
 
   def mobile = (npg /-> ct.mobile) map { ContactLocation(_) }
+
+  def knows = (npg /-> foaf.knows) map { Person(_) }
 
 }
 

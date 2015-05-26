@@ -16,7 +16,7 @@ object RwwScalaJS extends Build {
     organization := "net.bblfish",
     scalaVersion := "2.11.6",
     version := "0.2",
-    description := "read write web User Interface in Scala-JS",
+    description := "Read/Write SoLiD User Interface in Scala-JS",
     licenses := Seq("Apache License, Version 2.0" -> url("http://opensource.org/licenses/Apache-2.0")),
     homepage := Some(url("https://github.com/read-write-web/rww-scala-js")),
     publishTo := {
@@ -60,7 +60,9 @@ object RwwScalaJS extends Build {
         "org.webjars" % "font-awesome" % "4.3.0-1" % Provided,
         "org.webjars" % "bootstrap" % "3.3.2" % Provided,
         "org.w3" %%% "banana-plantain" % "0.8.2-SNAPSHOT",
-        "org.w3" %%% "banana-io-ntriples" % "0.8.2-SNAPSHOT"
+        "org.w3" %%% "banana-io-ntriples" % "0.8.2-SNAPSHOT",
+        "org.w3" %%% "banana-n3-js" % "0.8.2-SNAPSHOT",
+        "org.w3" %%% "banana-jsonld-js" % "0.8.2-SNAPSHOT"
 
         //"org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.7-SNAPSHOT",
         //"org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6",
