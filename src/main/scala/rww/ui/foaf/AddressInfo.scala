@@ -12,7 +12,7 @@ import scalacss.ScalaCssReact._
  */
 object AddressInfo {
   import rww._
-  val AddressInfo = ReactComponentB[PProps[Address]]("AddressInfo")
+  val AddressInfo = ReactComponentB[WProps[Address]]("AddressInfo")
     .initialState(None)
     .render((P,S,B)=> {
     val a = P.about
@@ -25,6 +25,6 @@ object AddressInfo {
     }
   }).build
 
-  def apply(add: PProps[Address]) = AddressInfo(add)
+  def apply(add: WProps[Address]) = AddressInfo(add)
 
 }

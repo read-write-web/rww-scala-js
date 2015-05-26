@@ -23,9 +23,12 @@ object MainRouter extends RoutingRules {
 
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
   import rww._
+  import rww.Rdf.ops._
+
+  def proxy(uri: Rdf#URI): Rdf#URI = URI("https://rww.io/proxy.php?uri="+uri.toString)
 
   //todo: Web Agent should be passed in constructor. ( but is tricky with router )
-  val ws = new WebAgent[Rdf](None)
+  val ws = new WebAgent[Rdf](proxy)
   val pages = Var(ListSet[jURI]())
 
   // build a baseUrl, this method works for both local and server addresses (assuming you use #)

@@ -20,7 +20,7 @@ object PersonBasicInfo {
     import rww._
     import Rdf.ops._
 
-    val PersonBasicInfo = ReactComponentB[PProps[Person]]("PersonBasicInfo")
+    val PersonBasicInfo = ReactComponentB[WProps[Person]]("PersonBasicInfo")
       .initialState(None)
       .render((P,S,B)=>{
         val person = P.about
@@ -37,7 +37,7 @@ object PersonBasicInfo {
       )
     }).build
 
-    def apply(person: Person, edit: Boolean) = {
-      PersonBasicInfo(PProps(person,edit))
+    def apply(props: WProps[Person]) = {
+      PersonBasicInfo(props)
     }
 }

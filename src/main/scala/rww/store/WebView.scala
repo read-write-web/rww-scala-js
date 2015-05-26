@@ -20,7 +20,7 @@ class WebView[Rdf <: RDF](val cache: HashMap[Rdf#URI, \/[Rdf#URI, Rdf#Graph]] = 
    * @param url
    * @param maxdepth redirects to follow. It never makes sense to have more than 1, since
    *                 xmlhttp requests follow redirects automatically.
-   * @return
+   * @return None if the object is not in the database otherwise the named pointed graph
    */
   def get(url: Rdf#URI, maxdepth: Int = 1): Option[Named[Rdf, PointedGraph[Rdf]]] =
     if (maxdepth <= 0) None

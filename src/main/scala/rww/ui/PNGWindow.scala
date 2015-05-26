@@ -4,7 +4,7 @@ import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.{BackendScope, ReactComponentB}
 import rww.ontology.Person
 import rww.store.WebView
-import rww.ui.foaf.{PProps, Profile}
+import rww.ui.foaf.{WProps, Profile}
 import rww.ui.util.RxObserver
 import rx._
 
@@ -31,7 +31,7 @@ object PNGWindow {
       }
       case Some(npg) => {
       //here of course one could choose the type of component, depending on the npg
-        Profile(Person(npg))
+        Profile(Person(npg),P.cache())
       }
     }
   })

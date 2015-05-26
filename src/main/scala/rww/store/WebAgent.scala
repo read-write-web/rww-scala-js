@@ -1,6 +1,7 @@
 package rww.store
 
 import java.io.StringReader
+import java.net.URLEncoder
 
 import org.scalajs.dom.ext.Ajax
 import org.w3.banana.io._
@@ -11,10 +12,10 @@ import rx.Var
 import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js
 import scala.util.Try
-import scalaz.{-\/, \/-}
+import scalaz.{Id, -\/, \/-}
 
 
-class WebAgent[Rdf <: RDF](proxy: Option[Rdf#URI])
+class WebAgent[Rdf <: RDF](proxy: Rdf#URI => Rdf#URI = (u: Rdf#URI)=>u)
                           (implicit
                            ec: ExecutionContext,
                            ops: RDFOps[Rdf],
@@ -34,31 +35,36 @@ class WebAgent[Rdf <: RDF](proxy: Option[Rdf#URI])
     import org.w3.banana.TryW
     cache().get(url) match {
       case Some(res) => Future.successful(res)
-      case None => Ajax.get(
-        base.toString,
-        headers = Map("Accept" -> "application/n-triples,application/ld+json;q=0.8,text/turtle;q=0.8")
-      ) flatMap { xhr =>
-        // responseURL is quite new. See https://xhr.spec.whatwg.org/#the-responseurl-attribute
-        // hence need for UndefOr
-        // todo: to remove dynamic use need to fix https://github.com/scala-js/scala-js-dom/issues/111
-        val redirectURLOpt = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[js.UndefOr[String]]
-        val rh = xhr.getResponseHeader("Content-Type")
-        println("Content-Type: "+rh)
-        val reader = new StringReader(xhr.responseText)
-        for {
-          g <-  rh.takeWhile(_ != ';') match {
-            case "application/n-triples" => rdrNT.read(reader, base.toString).asFuture
-            case "application/ld+json" => rdrJSONLD.read(reader,base.toString)
-            case "text/turtle" => rdrTurtle.read(reader,base.toString)
-            case _ => Future.failed(new Exception("could not find parser for "+rh))
-          }
-        } yield {
+      case None => {
+        val proxiedURL = proxy(base)
+        Ajax.get(
+          proxiedURL.toString,
+          headers = Map("Accept" -> "application/n-triples,application/ld+json;q=0.8,text/turtle;q=0.8")
+        ) flatMap { xhr =>
+          // responseURL is quite new. See https://xhr.spec.whatwg.org/#the-responseurl-attribute
+          // hence need for UndefOr
+          // todo: to remove dynamic use need to fix https://github.com/scala-js/scala-js-dom/issues/111
+          val redirectURLOpt = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[js.UndefOr[String]]
+          val rh = Option(xhr.getResponseHeader("Content-Type"))
+          println("fetching: "+proxiedURL.toString)
+          println("Content-Type:: "+rh)
+          val reader = new StringReader(xhr.responseText)
+          for {
+            g <-  rh.map(_.takeWhile(_ != ';')) match {
+              case Some("application/n-triples") => rdrNT.read(reader, base.toString).asFuture
+              case Some("application/ld+json") => rdrJSONLD.read(reader,base.toString)
+              case Some("text/turtle") => rdrTurtle.read(reader,base.toString)
+              case Some(other) => Future.failed(new Exception("could not find parser for "+other))
+              case None => Future.failed(new Exception("problem fetching remote resource:"+xhr.statusText))
+            }
+          } yield {
             val graphUrl = redirectURLOpt.map { redirectURLstr =>
               val redirectURL = URI(redirectURLstr)
-              if (redirectURL == base) base else redirectURL
+              if (redirectURL == proxiedURL) base else redirectURL
             } getOrElse {
               base
             }
+            println("graphUrl="+graphUrl)
             cache.update {
               val cvh = if (graphUrl != base) {
                 cache().cache.updated(base, -\/(graphUrl))
@@ -68,6 +74,7 @@ class WebAgent[Rdf <: RDF](proxy: Option[Rdf#URI])
             }
             Named(url, PointedGraph[Rdf](url, g))
           }
+        }
       }
     }
   }

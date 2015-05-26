@@ -12,7 +12,7 @@ import scalacss.ScalaCssReact._
  * Created by hjs on 17/05/2015.
  */
 object AccountInfo {
-  val AccountInfo = ReactComponentB[PProps[OnlineAccount]]("AccountInfo")
+  val AccountInfo = ReactComponentB[WProps[OnlineAccount]]("AccountInfo")
     .initialState(None)
     .render((P,S,B)=> {
     import rww.Rdf.ops._
@@ -32,5 +32,5 @@ object AccountInfo {
     )
   }).build
 
-  def apply(account: OnlineAccount, edit: Boolean = false) = AccountInfo(PProps(account))
+  def apply(p: WProps[OnlineAccount]) = AccountInfo(p)
 }

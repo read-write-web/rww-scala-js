@@ -3,6 +3,7 @@ package rww.ui.rdf
 import org.w3.banana.PointedGraph
 import rww.Rdf
 import rww.rdf.Named
+import rww.store.WebView
 
 import scalaz.NonEmptyList
 
@@ -83,6 +84,7 @@ case class NPGPath(target: Named[Rdf,PointedGraph[Rdf]],
   
   def pg =  target.obj
   import Rdf.ops
+  import Rdf.ops._
 
   def /->(p: Rdf#URI): Iterable[NPGPath] = {
     val nodes = ops.getObjects(pg.graph, pg.pointer, p)
@@ -104,6 +106,25 @@ case class NPGPath(target: Named[Rdf,PointedGraph[Rdf]],
     }
   }
 
+  /**
+   *
+   * @param webview a cache of the web
+   * @return  Some(this) if the pointer points to a literal or bnode, otherwise jump to the
+   *        definitional graph if one exists in the webview cache. None otherwise.
+   */
+  def jump(implicit webview: WebView[Rdf]) = {
+     target.obj.pointer match {
+       case l : Rdf#Literal => Some(this)
+       case bn: Rdf#BNode => Some(this)
+       case u: Rdf#URI =>
+         webview.get(u).map(NPGPath(_, this.path))
+     }
+  }
+
+}
+
+object NPGPath {
+  def pointer(npg: NPGPath): Option[Rdf#Node] = Some(npg.pg.pointer)
 }
 
 
