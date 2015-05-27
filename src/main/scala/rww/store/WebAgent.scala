@@ -14,7 +14,11 @@ import scala.scalajs.js
 import scala.util.Try
 import scalaz.{Id, -\/, \/-}
 
-
+/**
+ *
+ * @param proxy a function to map a URI to a proxy URI through which requests
+ *              can be made as if for the original one.
+ */
 class WebAgent[Rdf <: RDF](proxy: Rdf#URI => Rdf#URI = (u: Rdf#URI)=>u)
                           (implicit
                            ec: ExecutionContext,
@@ -46,11 +50,9 @@ class WebAgent[Rdf <: RDF](proxy: Rdf#URI => Rdf#URI = (u: Rdf#URI)=>u)
           // todo: to remove dynamic use need to fix https://github.com/scala-js/scala-js-dom/issues/111
           val redirectURLOpt = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[js.UndefOr[String]]
           val rh = Option(xhr.getResponseHeader("Content-Type"))
-          println("fetching: "+proxiedURL.toString)
-          println("Content-Type:: "+rh)
           val reader = new StringReader(xhr.responseText)
           for {
-            g <-  rh.map(_.takeWhile(_ != ';')) match {
+            g <-  rh.map(_.takeWhile(_ != ';').trim.toLowerCase) match {
               case Some("application/n-triples") => rdrNT.read(reader, base.toString).asFuture
               case Some("application/ld+json") => rdrJSONLD.read(reader,base.toString)
               case Some("text/turtle") => rdrTurtle.read(reader,base.toString)
@@ -64,7 +66,6 @@ class WebAgent[Rdf <: RDF](proxy: Rdf#URI => Rdf#URI = (u: Rdf#URI)=>u)
             } getOrElse {
               base
             }
-            println("graphUrl="+graphUrl)
             cache.update {
               val cvh = if (graphUrl != base) {
                 cache().cache.updated(base, -\/(graphUrl))

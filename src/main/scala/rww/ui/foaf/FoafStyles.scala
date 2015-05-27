@@ -223,17 +223,27 @@ object FoafStyles extends StyleSheet.Inline {
 //    color.white
   )
 
-  val contactPix = style(
-    width(60 px),
-    height(60 px),
-    overflow.hidden,
-    float.right,
+  val contactPixOuterBox = style(
+      position.relative,
+      width(80 px),
+      height(80 px),
+      overflow.hidden,
+      float.right)
 
-    unsafeChild("img")(
-      width(100 %%),
-      height.auto
+  val contactPix = intStyle(0 to 1)(i=>
+    styleS(
+        border(1 px),
+        position.absolute,
+        zIndex(i),
+        width(60 px),
+        height(60 px),
+        right(i*10 px),
+        top(i*10 px),
+        width(100 %%),
+        height.auto
     )
   )
+
 
 //  val submitButton = style (
 //    hover,

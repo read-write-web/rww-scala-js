@@ -12,6 +12,8 @@ import rww.ui.rdf.NPGPath
 
 import scala.collection.immutable.ListSet
 import scalacss.ScalaCssReact._
+import scalaz.effect.IO
+import japgolly.scalajs.react._, ScalazReact._
 
 /**
  * Created by hjs on 25/05/2015.
@@ -59,33 +61,38 @@ object MiniPix {
 
   val ST = ReactS.Fix[Int]
 
-  def onClick(e: ReactEventI) = ST.mod(_+1)
-
-
-
   val Pix = ReactComponentB[WProps[ListSet[NPGPath]]]("Person Mini Box Info")
     .initialState[Int](0)
-    .render((P, _, S) => {
+    .renderS(($,P,S) => {
     val pixs = P.about.collect{
       case value if value.pg.pointer.isURI => value.pg.pointer.asInstanceOf[Rdf#URI] //is there a nicer way to do this?
-    }.toSeq.lift
-    val i : Int = if (P.about.size==0) 0 else { S % P.about.size }
-    println(s"Pix($i)")
-    <.div(style.contactPix)(
-      <.img(^.src := pixs(i).map(_.getString).getOrElse("avatar-man.png"))
+    }.toSeq match {
+      case Seq() => Seq(URI("avatar-man.png"))
+      case other => other
+    }
+    def increment(e: ReactEventI) = ST.mod(_+1)
+    val i = if (P.about.size==0) 0 else S % P.about.size
+    if (pixs.size > 1) println("more than one picture for "+pixs(0))
+    <.div(style.contactPixOuterBox)(
+      pixs.slice(i,i+1).zipWithIndex.map { case (uri,ii) =>
+        <.img(^.src := uri.getString,
+          style.contactPix(ii),
+          ^.onClick ~~> $._runState(increment))
+      }
     )
   }).build
 
 
   def apply(wProps: WProps[Person]) = {
-    val localpics = ListSet(wProps.about.depiction.toSeq:_*)
-    val remotePics = wProps.about.npg.jump(wProps.webView) match {
+    val p = wProps.about
+    val localpics = ListSet((p.depiction ++ p.logo).toSeq:_*)
+    val remotePics = p.npg.jump(wProps.webView) match {
       case None => {
-        MainRouter.ws.fetch(wProps.about.npg.pg.pointer.asInstanceOf[Rdf#URI])
+        MainRouter.ws.fetch(p.npg.pg.pointer.asInstanceOf[Rdf#URI])
         None
       }
       case Some(npg) =>
-        if (npg eq wProps.about.npg) None
+        if (npg eq p.npg) None
         else {
           Some(Person(npg).depiction)
         }

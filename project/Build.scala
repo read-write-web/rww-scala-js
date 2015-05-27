@@ -50,9 +50,9 @@ object RwwScalaJS extends Build {
       jsDependencies += "org.webjars" % "react" % "0.12.1" / "react-with-addons.js" commonJSName "React",
       libraryDependencies ++= Seq(
         "org.scala-js" %%% "scalajs-dom" % "0.8.0",
-        "com.github.japgolly.scalajs-react" %%% "core" % "0.8.4",
-        "com.github.japgolly.scalajs-react" %%% "test" % "0.8.4" % "test",
-        "com.github.japgolly.scalajs-react" %%% "extra" % "0.8.4",
+        "com.github.japgolly.scalajs-react" %%% "core" % "0.9.0-SNAPSHOT",
+        "com.github.japgolly.scalajs-react" %%% "test" % "0.9.0-SNAPSHOT" % "test",
+        "com.github.japgolly.scalajs-react" %%% "extra" % "0.9.0-SNAPSHOT",
         "com.github.japgolly.scalacss" %%% "core" % "0.2.0",
         "com.github.japgolly.scalacss" %%% "ext-react" % "0.2.0",
         "com.lihaoyi" %%% "scalarx" % "0.2.8",
