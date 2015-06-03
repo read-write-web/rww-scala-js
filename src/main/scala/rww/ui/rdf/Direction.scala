@@ -1,11 +1,15 @@
 package rww.ui.rdf
 
 import org.w3.banana.PointedGraph
+import org.w3.banana.syntax.NodeW
 import rww.Rdf
 import rww.rdf.Named
-import rww.store.WebView
+import rww.store.{Ok, RequestState, WebAgent}
+import rx.Rx
+import rx.ops._
 
-import scalaz.NonEmptyList
+import scala.util.Success
+import scalaz._
 
 
 /**
@@ -108,24 +112,43 @@ case class NPGPath(target: Named[Rdf,PointedGraph[Rdf]],
 
   /**
    *
+   * Note: one could try simlifying the signature of the return statement to
+   * Rx[\/[RequestState,NPGPath]]
+   * But it's not clear this helps that much. Requesting callers don't necessarily
+   * want to get a new Rx.Var wrapper around the object they already have, and finding
+   * out that they then have the same wrapper object is extra effort: usually they have
+   * to filter it out. The special case is the 303 redirect which may only be discovered
+   * after the HTTP request is finished anyway...
+   *
    * @param webview a cache of the web
-   * @return  Some(this) if the pointer points to a literal or bnode, otherwise jump to the
-   *        definitional graph if one exists in the webview cache. None otherwise.
+   * @return  None if the pointer points to a literal, bnode or is a definitional #uri,
+   *          otherwise either the definitional graph or a RequestState. Note: if the
+   *          name of the returned graph is the same as the original then it's a 303
+   *          definition.
    */
-  def jump(implicit webview: WebView[Rdf]) = {
-     target.obj.pointer match {
-       case l : Rdf#Literal => Some(this)
-       case bn: Rdf#BNode => Some(this)
-       case u: Rdf#URI =>
-         webview.get(u).map(NPGPath(_, this.path))
-     }
+  def jump(implicit webview: WebAgent): Option[Rx[\/[RequestState,NPGPath]]] = {
+
+    new NodeW(target.obj.pointer).fold(
+      u => if (u.fragmentLess == target.name) None
+      else Some(webview.fetch(u) map {
+        case Ok(_, url, _, _, Success(graph)) =>
+          \/-(NPGPath(Named[Rdf,PointedGraph[Rdf]](url, PointedGraph[Rdf](u, graph)), this.path))
+        case rs => -\/(rs)
+      }),
+      bn => None,
+      l => None
+    )
   }
 
+
+
+
+
+//  def definitional(implicit webview: WebView[Rdf]) =
+//    jump.map(_.target.name == target.name ).getOrElse(false)
+
 }
 
-object NPGPath {
-  def pointer(npg: NPGPath): Option[Rdf#Node] = Some(npg.pg.pointer)
-}
 
 
 class NPGPathIterableW(val inpg: Iterable[NPGPath]) extends AnyVal {

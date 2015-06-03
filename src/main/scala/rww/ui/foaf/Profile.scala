@@ -1,24 +1,24 @@
 package rww.ui.foaf
 
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.extra.LogLifecycle
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.w3.banana.PointedGraph
-import rww.Rdf
 import rww.ontology._
-import rww.store.WebView
-import rww.ui.rdf.NPGPath
+import rww.store.WebAgent
 
 import scalacss.ScalaCssReact._
 
 
 case class WProps[O](about: O,
-                     edit: Boolean = false,
-                     webView: WebView[Rdf])
+                     webAgent: WebAgent,
+                     edit: Boolean = false
+                     )
 
 object Profile {
 
-  def apply(person: Person, webView: WebView[Rdf]) = {
-    profile(WProps(person,false,webView))
+  def apply(person: Person, web: WebAgent) = {
+    profile(WProps(person,web,false))
   }
 
   import rww._
@@ -45,7 +45,7 @@ object Profile {
     .initialState(State())
     .backend(new ProfileBackend(_))
     .render((P, S, B) => {
-    val newProps = P.copy(edit=S.edit)
+    val newProps: WProps[Person] = P.copy(edit=S.edit)
     // import shapeless.singleton.syntax._ <- use this when using styleC
     <.div(style.clearfix,style.center,style.body)(
       <.div(style.editProfile, ^.onClick==> B.handleSubmit)(
@@ -58,7 +58,7 @@ object Profile {
       FOAFInfo(newProps)
     )
   })
-//    .configure(LogLifecycle.short)
+    .configure(LogLifecycle.short)
     .build
 
 

@@ -244,6 +244,12 @@ object FoafStyles extends StyleSheet.Inline {
     )
   )
 
+  val webIdBar = intStyle(0 to 100)(i =>
+    styleS(
+       backgroundColor(if (i<30) yellow else if (i<65) yellowgreen else green)
+    )
+  )
+
 
 //  val submitButton = style (
 //    hover,

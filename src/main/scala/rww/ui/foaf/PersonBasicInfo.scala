@@ -26,13 +26,13 @@ object PersonBasicInfo {
         val person = P.about
         <.div(style.basic)(
           //todo: what should one do with multiple fields?
-          person.name.headOption.map(TextField(_,P.edit,"name",style.name)),
+          person.name.headOption.map(TextField(_,P.edit,"name",P.webAgent,style.name)),
           //todo: idem
-          person.givenName.headOption.map(TextField(_,P.edit,"given name",style.surname)),
+          person.givenName.headOption.map(TextField(_,P.edit,"given name",P.webAgent,style.surname)),
           //todo: can one extend the EditableTextField for URIs?
           person.workPlaceHomePage collectFirst {
             case npg @ NPGPath(Named(_,PointedGraph(URI(u),_)),_)  =>
-              URLField(npg,P.edit,"work place home page",style.company)
+              URLField(npg,P.edit,"work place home page",P.webAgent,style.company)
           }
       )
     }).build

@@ -2,7 +2,7 @@ package rww.ui.foaf
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import rww.ui.MainRouter
+import rww.store.WebAgent
 import rww.ui.rdf.NPGPath
 
 import scalacss.ScalaCssReact._
@@ -24,13 +24,13 @@ object EditableTextField {
    * @param style the style to give the component
    * @return the props
    */
-  def apply(npg: NPGPath, editMode: Boolean,title: String, style: StyleA=fstyle.name) = {
+  def apply(npg: NPGPath, editMode: Boolean,title: String, style: StyleA=fstyle.name, webAgent: WebAgent) = {
     //todo: get all the various pieces of name out
-    component(Props(npg,editMode,title, style: StyleA))
+    component(Props(npg,editMode,title, style: StyleA, webAgent))
   }
 
   case class State(edit: Option[String] = None)
-  case class Props(text: NPGPath, editMode: Boolean, title: String, style: StyleA=fstyle.name) {
+  case class Props(text: NPGPath, editMode: Boolean, title: String, style: StyleA=fstyle.name, webAgent: WebAgent) {
     val placeholder = "Enter "+title
   }
   
@@ -62,10 +62,11 @@ object EditableTextField {
         $.props.text.path.headOption.map{ arc =>
           val removeTriple = arc.arrow.rel
           val newTriple = Triple(removeTriple.subject, removeTriple.predicate, Literal(newName))
-          MainRouter.ws.vsimplePatch($.props.text.target.name, newTriple, removeTriple) map { _ =>
-            //todo: as this should return a future this will need to be changed
-            $.setState(State())
-          }
+          $.props.webAgent.vsimplePatch($.props.text.target.name, newTriple, removeTriple)
+//          map { _ =>
+            //vsimplePatch should return an  rx.Var
+//            $.setState(State())
+//          }
         } getOrElse {
           println("warning: path did not have an origin")
         }

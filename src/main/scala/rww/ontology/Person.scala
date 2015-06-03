@@ -13,8 +13,13 @@ case class Person(npg: NPGPath) {
   val foaf = FOAFPrefix[Rdf]
   val ct = ContactPrefix[Rdf]
   import rww._
+  import rww.Rdf.ops._
   //  val contact =
 
+  def webid = npg.pg.pointer match {
+    case u : Rdf#URI => Some(u)
+    case _ => None
+  }
 
   def name = (npg /-> foaf.name)
 

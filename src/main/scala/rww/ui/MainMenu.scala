@@ -1,17 +1,14 @@
 package rww.ui
 
 
-import java.net.URI
+import java.net.{URI => jURI}
 
-import japgolly.scalajs.react.extra.OnUnmount
+import japgolly.scalajs.react.extra.router2._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import japgolly.scalajs.react.{BackendScope, ReactNode, _}
-import rww.Rdf
-import rww.store.WebView
+import japgolly.scalajs.react.{ReactNode, _}
 import rx._
-import rx.ops._
-import spatutorial.client.components.Icon._
-import spatutorial.client.components._
+import spatutorial.client.components.Icon.Icon
+import spatutorial.client.components.{GlobalStyles, Icon}
 
 import scala.collection.immutable.ListSet
 import scalacss.ScalaCssReact._
@@ -21,58 +18,51 @@ import scalacss.ScalaCssReact._
  */
 object MainMenu {
 
+
+
+
   private val menuItems = {
-    List(MenuItem(_ => "Dashboard", Icon.dashboard, MainRouter.dashboardLoc))
+    List(MenuItem(_ => "Dashboard", Icon.dashboard, URLSelector))
   }
 
   private val MainMenu = ReactComponentB[Props]("MainMenu")
-    .stateless
-    .backend(new Backend(_))
-    .render((P, _, B) => {
+    .initialStateP(p=>p.pages)
+    .render((P, S) => {
     <.ul(bss.navbar)(
     // build a list of menu items
     for (item <- menuItems) yield {
-      <.li((P.activeLocation.path == item.location.path) ?= (^.className := "active"),
-        MainRouter.routerLink(item.location)(item.icon, " ", item.label(P))
+      <.li((P.currentLoc == item.location) ?= (^.className := "active"),
+        P.ctl.link(item.location)(item.icon, " ", item.label(P))
       )
     }, {
       var i: Int = 0
-      for (u <- P.pages) yield {
+      for (u <- S) yield {
         i = i + 1
-        val l = MainRouter.pagesLoc(u)
-        <.li((P.activeLocation.path == l.path) ?= (^.className := "active"),
-          MainRouter.routerLink(l)(Icon.check, " ", "page " + i)
+        <.li((P.currentLoc == Component(u.toString)) ?= (^.className := "active"),
+          P.ctl.link(Component(u.toString))(Icon.check, " ", "page " + i)
         )
 
       }
     }
     )
   })
-    .componentDidMount(_.backend.mounted())
     .build
 
   def apply(props: Props) = MainMenu(props)
 
   @inline private def bss = GlobalStyles.bootstrapStyles
 
-  case class Props(activeLocation: MainRouter.Loc,
-                   pages: ListSet[URI],
-                   webview: Rx[WebView[Rdf]])
+//  case class Props(activeLocation: MainRouter.Loc,
+//                   pages: ListSet[jURI],
+//                   webAgent: WebAgent )
+
+  case class Props(ctl: RouterCtl[MyPages], currentLoc:MyPages, pages: ListSet[jURI])
+
 
   case class MenuItem(label: (Props) => ReactNode,
                       icon: Icon,
-                      location: MainRouter.Loc)
+                      location: MyPages)
 
-  class Backend(t: BackendScope[Props, _]) extends OnUnmount {
-    def mounted(): Unit = {
-      // hook up to Todo changes
-      val obsItems = t.props.webview.foreach { wv => t.forceUpdate() }
-      onUnmount {
-        // stop observing when unmounted (= never in this SPA)
-        obsItems.kill()
-      }
-      //      MainDispatcher.dispatch(RefreshTodos)
-    }
-  }
+
 
 }

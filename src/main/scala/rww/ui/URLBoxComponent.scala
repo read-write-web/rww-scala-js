@@ -1,25 +1,23 @@
 package rww.ui
 
 
-import java.net.URI
+import java.net.{URI => jURI}
 
 import japgolly.scalajs.react.ScalazReact._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import rx.Var
 import spatutorial.client.components.Bootstrap.CommonStyle
 import spatutorial.client.components.GlobalStyles
 
-import scala.collection.immutable.ListSet
 import scala.util.Try
 import scalacss.ScalaCssReact._
-import scalaz.effect.IO
+
 
 
 /**
  * Created by hjs on 13/05/2015.
  */
-object URLBox {
+object URLBoxComponent {
   val ST = ReactS.Fix[State]
   @inline private def bss = GlobalStyles.bootstrapStyles
 
@@ -28,26 +26,12 @@ object URLBox {
     ST.mod(state => State(e.target.value))
 
 
-  def handleSubmit( props: Props, state: State)(e: ReactEventI) = ST.retM{
+  def handleSubmit( props: Props, state: State)(e: ReactEventI) = ST.retM (
     e.preventDefaultIO
-  } addCallback IO {
-    state.url.map { uri =>
-      MainRouter.ws.fetch(rww.Rdf.ops.URI(state.urlStr)) //todo: move elswhere
-      props.uri.update(props.uri() + uri) //todo: use the message passing pattern from tutorial?
-    }
-    ()
-  }.flatMap { _ =>
-    state.url.map{ uri =>
-      MainRouter.router.setIO(MainRouter.pagesLoc(uri))}.getOrElse(IO())
-  }
+  )
 
   private val UrlBox = ReactComponentB[Props]("MainMenu")
-    .initialStateP(p =>
-    State(p.uri().headOption.map(_.toString)
-      //todo: make default settable ( not quite as easy as expected, due to typing of router )
-      .getOrElse("http://bblfish.net/people/henry/card#me")
-    )
-    )
+    .initialStateP(p => State(p.uri.map(_.toString).getOrElse("")))
     .renderS(($, P, S) =>
     <.form(^.onSubmit ~~> $._runState(handleSubmit(P,S)))(
       <.input(^.`type` := "text", ^.onChange ~~> $._runState(onChange), bss.formControl,
@@ -60,10 +44,10 @@ object URLBox {
   def apply(uri: Props) = UrlBox(uri)
 
 
-  case class Props(uri: Var[ListSet[URI]])
+  case class Props(uri: Option[jURI], onSubmit: jURI => Unit  )
 
   case class State(urlStr: String) {
-    val url = Try(new java.net.URI(urlStr))
+    val url = Try(new jURI(urlStr))
   }
 
 }
