@@ -1,6 +1,7 @@
 package rww.ui.foaf
 
 import japgolly.scalajs.react.ScalazReact.{ReactS, _}
+import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.{ReactComponentB, ReactEventI, _}
 import org.w3.banana.syntax.NodeW
@@ -64,6 +65,7 @@ object MiniPersonInfo {
     )
   })
     .componentWillMount(_.backend.mounting)
+    .configure(OnUnmount.install)
     .build
 
   def apply(p: WProps[Person]) = Mini(p)

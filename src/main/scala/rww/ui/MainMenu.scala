@@ -22,7 +22,7 @@ object MainMenu {
 
 
   private val menuItems = {
-    List(MenuItem(_ => "Dashboard", Icon.dashboard, URLSelector))
+    List(MenuItem(_ => "Dashboard", Icon.dashboard, URLEntry))
   }
 
   private val MainMenu = ReactComponentB[Props]("MainMenu")
@@ -36,7 +36,7 @@ object MainMenu {
       )
     }, {
       var i: Int = 0
-      for (u <- S) yield {
+      for (u <- S()) yield {
         i = i + 1
         <.li((P.currentLoc == Component(u.toString)) ?= (^.className := "active"),
           P.ctl.link(Component(u.toString))(Icon.check, " ", "page " + i)
@@ -56,7 +56,7 @@ object MainMenu {
 //                   pages: ListSet[jURI],
 //                   webAgent: WebAgent )
 
-  case class Props(ctl: RouterCtl[MyPages], currentLoc:MyPages, pages: ListSet[jURI])
+  case class Props(ctl: RouterCtl[MyPages], currentLoc:MyPages, pages: Var[ListSet[jURI]])
 
 
   case class MenuItem(label: (Props) => ReactNode,

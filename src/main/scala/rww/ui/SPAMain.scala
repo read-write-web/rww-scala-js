@@ -26,7 +26,7 @@ import scalacss.ScalaCssReact._
  */
 
 sealed trait MyPages
-case object URLSelector extends MyPages
+case object URLEntry extends MyPages
 case class Component(url: String) extends MyPages
 
 
@@ -36,18 +36,21 @@ object SPAMain extends JSApp {
   import rww.Rdf
   import rww.Rdf.ops._
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+  import scala.scalajs.js.URIUtils._
 
-  val webids = Var(ListSet(new jURI("http://bblfish.net/people/henry/card#me")))
+  val defaultUri = "http://bblfish.net/people/henry/card#me"  //todo: pass this as parameter
+  val webids = Var(ListSet[jURI]())
   val urlPathMatcher = ".*"
 
   val routerConfig = RouterConfigDsl[MyPages].buildConfig { dsl =>
     import dsl._
-    val urlRoute: Route[Component] = ("#url" / string(urlPathMatcher)).caseclass1(Component.apply)(Component.unapply)
-
+    val displayRoute: Route[Component] = ("#url" / string(urlPathMatcher)).caseclass1(Component.apply)(Component.unapply)
     ( emptyRule
-      | staticRoute(root,  URLSelector) ~> render(Dashboard(webids))
-      | dynamicRouteCT(urlRoute) ~> dynRender{e: Component =>  PNGWindow(URI(e.url),ws) }
-      ).notFound(redirectToPage(URLSelector)(Redirect.Replace))
+      | staticRoute(root,URLEntry) ~> renderR{ (ctl)  =>
+           Dashboard( defaultUri, { u: jURI => webids() = webids() + u;  ctl.set(Component(u.toString)) } )
+         }
+      | dynamicRouteCT(displayRoute) ~> dynRender{e: Component =>  PNGWindow(URI(e.url),ws) }
+      ).notFound(redirectToPage(URLEntry)(Redirect.Replace))
   }.renderWith(layout)
 
   // base layout for all pages
@@ -59,7 +62,7 @@ object SPAMain extends JSApp {
           <.div
             (^.className := "navbar-header")(<.span(^.className := "navbar-brand")("SPA Tutorial")),
           <.div(^.className := "collapse navbar-collapse")(
-            MainMenu(MainMenu.Props(c, r.page,webids()))
+            MainMenu(MainMenu.Props(c, r.page,webids))
           )
         )
       ),

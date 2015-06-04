@@ -1,5 +1,6 @@
 package rww.ui
 
+import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.{ReactElement, BackendScope, ReactComponentB}
 import org.w3.banana.PointedGraph
 import rww.ontology.Person
@@ -49,7 +50,7 @@ object PNGWindow {
       r.getOrElse(<.div("huh?"))
     })
     .componentWillMount(_.backend.mounting)
-//    .configure(OnUnmount.install)
+    .configure(OnUnmount.install)
     .build
 
   def apply(pointer: Rdf#URI, ws: WebAgent) =

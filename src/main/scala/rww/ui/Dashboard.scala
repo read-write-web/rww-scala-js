@@ -4,28 +4,25 @@ import japgolly.scalajs.react.ReactComponentB
 import japgolly.scalajs.react.vdom.prefix_<^._
 
 import java.net.{URI=>jURI}
+import rww.ui.{URLBoxComponent=>UBox}
 
-import rx.Var
-
-import scala.collection.immutable.ListSet
+import scalaz.effect.IO
 
 /**
  * Created by hjs on 13/05/2015.
  */
 object Dashboard {
   //todo: why is it important that this pass the Router?
-  val component = ReactComponentB[Var[ListSet[jURI]]]("Dashboard")
+  val component = ReactComponentB[UBox.Props]("Dashboard")
     .render((P) => {
     // create dummy data for the chart
     <.div(
       // header, MessageOfTheDay and chart components
       <.h2("Dashboard"),
-      URLBoxComponent(URLBoxComponent.Props(P().headOption,
-        uri => P() = P() + uri ))
+      UBox(P)
     )
   }).build
 
 
-
-  def apply(uris: Var[ListSet[jURI]]) = component(uris)
+  def apply(u: String, submitUrl: jURI=>IO[Unit]) = component(UBox.Props(u,submitUrl))
 }
