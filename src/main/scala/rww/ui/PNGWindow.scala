@@ -33,6 +33,7 @@ object PNGWindow {
     .render((P, S, B) => {
       val r: Option[ReactElement] = S map {
         case Ok(_, url, _, _, parsed) => {
+          println(s"url=<$url> about=${P.about}")
           parsed match {
             case scala.util.Success(graph) => {
               //here of course one could choose the type of component, depending on the npg

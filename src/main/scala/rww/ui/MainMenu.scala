@@ -36,10 +36,10 @@ object MainMenu {
       )
     }, {
       var i: Int = 0
-      for (u <- S()) yield {
+      for (u: jURI <- S().toList.reverse) yield { //todo: reverse list to get page numbering ugly
         i = i + 1
-        <.li((P.currentLoc == Component(u.toString)) ?= (^.className := "active"),
-          P.ctl.link(Component(u.toString))(Icon.check, " ", "page " + i)
+        <.li((P.currentLoc == Component(u)) ?= (^.className := "active"),
+          P.ctl.link(Component(u))(Icon.check, " ", "page " + i)
         )
 
       }

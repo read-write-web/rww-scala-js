@@ -19,6 +19,7 @@ import scala.scalajs.js.JSApp
 import scala.scalajs.js.annotation.JSExport
 import scalacss.Defaults._
 import scalacss.ScalaCssReact._
+import scala.scalajs.js.URIUtils._
 
 
 /**
@@ -27,7 +28,15 @@ import scalacss.ScalaCssReact._
 
 sealed trait MyPages
 case object URLEntry extends MyPages
-case class Component(url: String) extends MyPages
+case class Component(encodedUrl: String) extends MyPages {
+  import rww.Rdf.ops._
+  def url = decodeURIComponent(encodedUrl)
+  def asURI = URI(url)
+  def asJUri = new jURI(url)
+}
+object Component {
+  def apply(uri: jURI) = new Component(encodeURIComponent(uri.toString))
+}
 
 
 
@@ -36,7 +45,6 @@ object SPAMain extends JSApp {
   import rww.Rdf
   import rww.Rdf.ops._
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
-  import scala.scalajs.js.URIUtils._
 
   val defaultUri = "http://bblfish.net/people/henry/card#me"  //todo: pass this as parameter
   val webids = Var(ListSet[jURI]())
@@ -47,9 +55,9 @@ object SPAMain extends JSApp {
     val displayRoute: Route[Component] = ("#url" / string(urlPathMatcher)).caseclass1(Component.apply)(Component.unapply)
     ( emptyRule
       | staticRoute(root,URLEntry) ~> renderR{ (ctl)  =>
-           Dashboard( defaultUri, { u: jURI => webids() = webids() + u;  ctl.set(Component(u.toString)) } )
+           Dashboard( defaultUri, { u: jURI => webids() = webids() + u; ctl.set(Component(u)) } )
          }
-      | dynamicRouteCT(displayRoute) ~> dynRender{e: Component =>  PNGWindow(URI(e.url),ws) }
+      | dynamicRouteCT(displayRoute) ~> dynRender{e: Component =>  PNGWindow(e.asURI,ws) }
       ).notFound(redirectToPage(URLEntry)(Redirect.Replace))
   }.renderWith(layout)
 
