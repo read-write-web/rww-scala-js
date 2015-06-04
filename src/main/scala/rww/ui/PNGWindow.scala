@@ -22,7 +22,7 @@ object PNGWindow {
 
   class Backend(t: BackendScope[WProps[Rdf#URI], Option[RequestState]])
     extends RxStateObserver[RequestState](t)  {
-    def mounting(): Unit = observe(Some(t.props.webAgent.fetch(t.props.about)))
+    def mounting(props: WProps[Rdf#URI]): Unit = observe(Some(props.webAgent.fetch(props.about)))
   }
 
 
@@ -50,7 +50,8 @@ object PNGWindow {
       }
       r.getOrElse(<.div("huh?"))
     })
-    .componentWillMount(_.backend.mounting)
+    .componentWillReceiveProps{ (CS,P) => CS.backend.runUnmount(); CS.backend.mounting(P) }
+    .componentWillMount(cs => cs.backend.mounting(cs.props))
     .configure(OnUnmount.install)
     .build
 
