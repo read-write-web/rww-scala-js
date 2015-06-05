@@ -9,6 +9,7 @@ import rww.Rdf.ops._
 import rww._
 import rww.ontology.Person
 import rww.store._
+import rww.ui.Component
 import rww.ui.foaf.{FoafStyles => style}
 import rww.ui.rdf.NPGPath
 import rww.ui.util.RxStateObserver
@@ -43,7 +44,7 @@ object MiniPersonInfo {
 
   class Backend(t: BackendScope[WProps[Person], Option[JumpTyp]])
     extends RxStateObserver[\/[RequestState,NPGPath]](t)  {
-    def mounting(): Unit = observe(t.props.about.npg.jump(t.props.webAgent))
+    def mounting(p: WProps[Person]): Unit = observe(p.about.npg.jump(p.webAgent))
   }
 
 
@@ -61,10 +62,11 @@ object MiniPersonInfo {
           case Literal(name, _, _) => name
         }),
       MiniPix(Person(S.flatMap(_.toOption).getOrElse(P.about.npg))),
-      WebIDBar(P.about.npg.pg.pointer,S.flatMap(_.swap.toOption))
+      WebIDBar(P.copy(about=(P.about.npg.pg.pointer,S.flatMap(_.swap.toOption))))
     )
   })
-    .componentWillMount(_.backend.mounting)
+    .componentWillMount(cs => cs.backend.mounting(cs.props))
+    .componentWillReceiveProps{ (CS,P) => CS.backend.runUnmount(); CS.backend.mounting(P) }
     .configure(OnUnmount.install)
     .build
 
@@ -73,35 +75,47 @@ object MiniPersonInfo {
 }
 
 object WebIDBar {
-  import scalacss.Defaults._
 
   //todo: rewrite all this with external style sheets
-  val Bar = ReactComponentB[(Rdf#Node,Option[RequestState])]("Person WebID bar")
+  val Bar = ReactComponentB[WProps[(Rdf#Node,Option[RequestState])]]("Person WebID bar")
     .stateless
     .render((P,_) => {
-    println(s"WebIDBar for <${P._1}> of type ${P._2.toString.substring(0,20)}")
-    new NodeW[Rdf]( P._1).fold (
+    new NodeW[Rdf]( P.about._1).fold (
         u => {
-          val bgcolor = P._2 map {
-          case Downloading(_, p) => p.map(p =>
-            if (p < 0.3) color.lightyellow
-            else if (p < 0.6) color.yellowgreen
-            else color.lightgreen
-          ).getOrElse(color.yellow)
-          case h: HttpError => color.lightpink
-          case o: Ok => color.white
-          case r: Redirected => color.antiquewhite
-          //         <.div(style.webIdBar(S))(webid(P))
+          val bgcolorOpt = P.about._2 map {
+            case Downloading(_, p) => p.map(p =>
+              if (p < 0.3) color.lightyellow
+              else if (p < 0.6) color.yellowgreen
+              else color.lightgreen
+            ).getOrElse(color.yellow)
+            case h: HttpError => color.lightpink
+            case o: Ok => color.white
+            case r: Redirected => color.antiquewhite
+            //         <.div(style.webIdBar(S))(webid(P))
 
-        }
-        <.div(^.overflow.hidden,^.position.absolute,^.bottom := (10 px), bgcolor.map(c=> ^.backgroundColor := c.value))(u.toASCIIString)
+          }
+          val bgcolor = bgcolorOpt.getOrElse(color.beige)
+
+          //todo: requires that the Component know how to show errors
+            <.div(^.overflow.hidden, ^.position.absolute,
+              ^.bottom := (10 px),
+              ^.backgroundColor := bgcolor.value
+            )(  P.ctl.link(Component(u))(u.toString) )
       },
-      bn => <.div(^.overflow.hidden, ^.position.absolute,^.bottom := (10 px), ^.backgroundColor := color.blue.value)("add webid"),
-      lit => <.div(^.overflow.hidden,^.position.absolute,^.bottom:=(10 px),^.backgroundColor := color.purple.value)("??"+lit.lexicalForm)
+      bn => <.div(^.overflow.hidden,
+        ^.position.absolute,^.bottom := (10 px),
+        ^.backgroundColor := color.blue.value)(
+          "add webid"
+        ),
+      lit => <.div(^.overflow.hidden,^.position.absolute,
+        ^.bottom:=(10 px),
+        ^.backgroundColor := color.purple.value)(
+          "??"+lit.lexicalForm
+        )
     )
   }).build
 
-  def apply(id: Rdf#Node, state: Option[RequestState]) = Bar((id,state))
+  def apply(p: WProps[(Rdf#Node,Option[RequestState])]) = Bar(p)
 
 }
 

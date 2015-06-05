@@ -2,23 +2,26 @@ package rww.ui.foaf
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.LogLifecycle
+import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.w3.banana.PointedGraph
 import rww.ontology._
 import rww.store.WebAgent
+import rww.ui.RwwPages
 
 import scalacss.ScalaCssReact._
 
 
 case class WProps[O](about: O,
                      webAgent: WebAgent,
+                     ctl: RouterCtl[RwwPages],
                      edit: Boolean = false
                      )
 
 object Profile {
 
-  def apply(person: Person, web: WebAgent) = {
-    profile(WProps(person,web,false))
+  def apply(person: WProps[Person]) = {
+    profile(person)
   }
 
   import rww._

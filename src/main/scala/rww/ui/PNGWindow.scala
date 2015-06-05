@@ -1,6 +1,7 @@
 package rww.ui
 
 import japgolly.scalajs.react.extra.OnUnmount
+import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.{ReactElement, BackendScope, ReactComponentB}
 import org.w3.banana.PointedGraph
 import rww.ontology.Person
@@ -37,10 +38,9 @@ object PNGWindow {
           parsed match {
             case scala.util.Success(graph) => {
               //here of course one could choose the type of component, depending on the npg
-              Profile(
-                Person(NPGPath(Named[Rdf, PointedGraph[Rdf]](url, PointedGraph[Rdf](P.about, graph)))),
-                P.webAgent
-              )
+              Profile( P.copy(about=
+                Person(NPGPath(Named[Rdf, PointedGraph[Rdf]](url, PointedGraph[Rdf](P.about, graph))))
+              ))
             }
             case scala.util.Failure(e) => <.div()("error: "+e)
           }
@@ -55,6 +55,6 @@ object PNGWindow {
     .configure(OnUnmount.install)
     .build
 
-  def apply(pointer: Rdf#URI, ws: WebAgent) =
-    Window(WProps(pointer,ws))
+  def apply(pointer: Rdf#URI, ws: WebAgent, ctl: RouterCtl[RwwPages]) =
+    Window(WProps(pointer,ws,ctl))
 }

@@ -56,12 +56,12 @@ object MainMenu {
 //                   pages: ListSet[jURI],
 //                   webAgent: WebAgent )
 
-  case class Props(ctl: RouterCtl[MyPages], currentLoc:MyPages, pages: Var[ListSet[jURI]])
+  case class Props(ctl: RouterCtl[RwwPages], currentLoc:RwwPages, pages: Var[ListSet[jURI]])
 
 
   case class MenuItem(label: (Props) => ReactNode,
                       icon: Icon,
-                      location: MyPages)
+                      location: RwwPages)
 
 
 

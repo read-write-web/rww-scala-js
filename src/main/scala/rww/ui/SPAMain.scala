@@ -26,13 +26,13 @@ import scala.scalajs.js.URIUtils._
  * Created by hjs on 13/05/2015.
  */
 
-sealed trait MyPages
-case object URLEntry extends MyPages
-case class Component(encodedUrl: String) extends MyPages {
+sealed trait RwwPages
+case object URLEntry extends RwwPages
+case class Component(encodedUrl: String) extends RwwPages {
   import rww.Rdf.ops._
-  def url = decodeURIComponent(encodedUrl)
-  def asURI = URI(url)
-  def asJUri = new jURI(url)
+  lazy val url = decodeURIComponent(encodedUrl)
+  lazy val asURI = URI(url)
+  lazy val asJUri = new jURI(url)
 }
 object Component {
   def apply(uri: jURI) = new Component(encodeURIComponent(uri.toString))
@@ -47,30 +47,36 @@ object SPAMain extends JSApp {
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
   val defaultUri = "http://bblfish.net/people/henry/card#me"  //todo: pass this as parameter
-  val webids = Var(ListSet[jURI]())
+  val windowHistory = Var(ListSet[jURI]())
   val urlPathMatcher = ".*"
 
-  val routerConfig = RouterConfigDsl[MyPages].buildConfig { dsl =>
+  def openWindow(u: jURI, ctl: RouterCtl[RwwPages]) = {
+   
+    
+  }
+
+  val routerConfig = RouterConfigDsl[RwwPages].buildConfig { dsl =>
     import dsl._
     val displayRoute: Route[Component] = ("#url" / string(urlPathMatcher)).caseclass1(Component.apply)(Component.unapply)
     ( emptyRule
-      | staticRoute(root,URLEntry) ~> renderR{ (ctl)  =>
-           Dashboard( defaultUri, { u: jURI => webids() = webids() + u; ctl.set(Component(u)) } )
-         }
-      | dynamicRouteCT(displayRoute) ~> dynRender{e: Component =>  PNGWindow(e.asURI,ws) }
+      | staticRoute(root,URLEntry) ~> renderR{ (ctl) => Dashboard( defaultUri, u=>ctl.set(Component(u)) ) }
+      | dynamicRouteCT(displayRoute) ~> dynRenderR{ (cmpnent,ctl) =>
+         windowHistory() = windowHistory() + cmpnent.asURI
+         PNGWindow(cmpnent.asURI,ws, ctl)
+      }
       ).notFound(redirectToPage(URLEntry)(Redirect.Replace))
   }.renderWith(layout)
 
   // base layout for all pages
-  def layout(c: RouterCtl[MyPages], r: Resolution[MyPages]) = {
+  def layout(c: RouterCtl[RwwPages], r: Resolution[RwwPages]) = {
     <.div(
       // here we use plain Bootstrap class names as these are specific to the top level layout defined here
       <.nav(^.className := "navbar navbar-inverse navbar-fixed-top")(
         <.div(^.className := "container")(
           <.div
-            (^.className := "navbar-header")(<.span(^.className := "navbar-brand")("SPA Tutorial")),
+            (^.className := "navbar-header")(<.span(^.className := "navbar-brand")("RWW")),
           <.div(^.className := "collapse navbar-collapse")(
-            MainMenu(MainMenu.Props(c, r.page,webids))
+            MainMenu(MainMenu.Props(c, r.page,windowHistory))
           )
         )
       ),
