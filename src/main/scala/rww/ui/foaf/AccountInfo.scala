@@ -26,8 +26,8 @@ object AccountInfo {
         <.a(^.href := u.toString, ^.target := "_blank", style.titleCase)(u.getAuthority)
       },
       <.dl()(
-        act.label.toLitStr.headOption.toList.flatMap(t=> List(<.dt("label")(<.dd(t)))),
-        act.accountName.toLitStr.headOption.toList.flatMap(n=> List(<.dt("name"),<.dd(n)))
+        act.label.toLitStr.headOption.toSeq.flatMap(t=> Seq(<.dt("label"),<.dd(t))),
+        act.accountName.toLitStr.headOption.toSeq.flatMap(n=> Seq(<.dt("name"),<.dd(n)))
       )
     )
   }).build
