@@ -58,12 +58,41 @@ object Profile {
       Image(newProps.copy(about=P.about.depiction.headOption)),
       PersonBasicInfo(newProps),
       PersonMoreInfo(newProps),
+      WebIDInfo(P),
       FOAFInfo(newProps)
     )
   })
     .configure(LogLifecycle.short)
     .build
 
+}
+
+object WebIDInfo {
+
+  import rww.Rdf.ops._
+  import rww.ui.foaf.{FoafStyles => style}
+
+  val component = ReactComponentB[WProps[Person]]("Profile")
+    .stateless
+    .render((P, _) =>
+    P.about.npg.pg.pointer match {
+      case URI(url) =>
+        <.div(style.clearfix, style.webidbar)(
+          <.a(^.href := url)(
+            <.img(^.alt := "Web ID logo", style.floatLeft, ^.src := "img/webid.png")
+          ),
+          <.div(style.floatLeft, style.webidAddress)(
+            <.div(style.titleCase)("Web-ID"),
+            url)
+      )
+      case BNode(t) => <.div()
+      case Literal(t, _, _) => <.div()
+    }).build
+
+  def apply(person: WProps[Person]) = {
+    component(person)
+  }
 
 
 }
+

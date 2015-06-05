@@ -50,6 +50,32 @@ object FoafStyles extends StyleSheet.Inline {
     top.named('outer) :*: img.named('image)
   }
 
+  val webidbar = style (
+    background := lightestGrey,
+    margin(30 px, 0 px, 0 px, 0 px),
+    padding(10 px),
+    whiteSpace.nowrap,
+    overflow.hidden,
+    textOverflow:="ellipsis",
+
+    unsafeChild("img") (
+      width(40 px),
+      height(40 px),
+      marginRight(10 px)
+    )
+  )
+
+  val webidAddress = style(
+    color := mediumGrey,
+    width(90 %%),
+    height(40 px),
+//    lineHeight(40 px), problem getting webid to follow.
+    verticalAlign.middle,
+    whiteSpace.nowrap,
+    overflow.hidden,
+    textOverflow := "ellipsis"
+  )
+
   //same as above but unsafe
   val pictureUnsafe = style(
     width(200 px),
