@@ -23,7 +23,7 @@ object PNGWindow {
 
   class Backend(t: BackendScope[WProps[Rdf#URI], Option[RequestState]])
     extends RxStateObserver[RequestState](t)  {
-    def mounting(props: WProps[Rdf#URI]): Unit = observe(Some(props.webAgent.fetch(props.about)))
+    def mounting(props: WProps[Rdf#URI]): Unit = observeAndSetState(Some(props.webAgent.fetch(props.about)))
   }
 
 

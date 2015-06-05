@@ -44,7 +44,7 @@ object MiniPersonInfo {
 
   class Backend(t: BackendScope[WProps[Person], Option[JumpTyp]])
     extends RxStateObserver[\/[RequestState,NPGPath]](t)  {
-    def mounting(p: WProps[Person]): Unit = observe(p.about.npg.jump(p.webAgent))
+    def mounting(p: WProps[Person]): Unit = observeAndSetState(p.about.npg.jump(p.webAgent))
   }
 
 
