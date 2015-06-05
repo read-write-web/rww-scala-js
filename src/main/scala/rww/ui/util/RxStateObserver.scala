@@ -15,6 +15,7 @@ abstract class RxStateObserver[S](scope: BackendScope[_, Option[S]])
     val obs = rxo.map(rx => rx.foreach(v => {
       scope.setState(Some(v))
     }))
+    if (obs.isEmpty) scope.setState(None)
     // stop observing when unmounted
     onUnmount {
       obs.map(o => o.kill())
