@@ -8,6 +8,7 @@ import org.w3.banana.PointedGraph
 import rww.ontology._
 import rww.store.WebAgent
 import rww.ui.RwwPages
+import rww.ui.foaf.PersonBasicInfo
 
 import scalacss.ScalaCssReact._
 
@@ -55,8 +56,10 @@ object Profile {
         S.text,
         if (S.edit) <.a(^.onClick==>B.handleCancel)("cancel") else EmptyTag
       ),
-      Image(newProps.copy(about=P.about.depiction.headOption)),
-      PersonBasicInfo(newProps),
+      <.div()(
+        Image(newProps.copy(about=P.about.depiction.headOption)),
+        PersonBasicInfo(newProps)
+      ),
       PersonMoreInfo(newProps),
       WebIDInfo(P),
       FOAFInfo(newProps)

@@ -50,6 +50,20 @@ object FoafStyles extends StyleSheet.Inline {
     top.named('outer) :*: img.named('image)
   }
 
+  //same as above but unsafe
+  val pictureUnsafe = style(
+    width(200 px),
+    height(200 px),
+    borderRadius(50 %%),
+    overflow.hidden,
+    float.right,
+    unsafeChild("img")(
+      width(110 %%),
+      height.initial
+    )
+  )
+
+
   val webidbar = style (
     background := lightestGrey,
     margin(30 px, 0 px, 0 px, 0 px),
@@ -76,19 +90,6 @@ object FoafStyles extends StyleSheet.Inline {
     textOverflow := "ellipsis"
   )
 
-  //same as above but unsafe
-  val pictureUnsafe = style(
-    width(200 px),
-    height(200 px),
-    borderRadius(50 %%),
-    overflow.hidden,
-    position.absolute,
-    right(35 px),
-    unsafeChild("img")(
-      width(110 %%),
-      height.initial
-    )
-  )
 
   //small profile pix
   val pix = style(
@@ -132,6 +133,7 @@ object FoafStyles extends StyleSheet.Inline {
 
   val details = style(
     color(mediumGrey),
+    clear.both,
     unsafeChild(".title")(
       backgroundColor(myBlue),
       padding(7 px, 10 px),
