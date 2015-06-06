@@ -129,7 +129,7 @@ object MiniPix {
     val pixs = P.collect{
       case value if value.pg.pointer.isURI => value.pg.pointer.asInstanceOf[Rdf#URI] //is there a nicer way to do this?
     }.toSeq match {
-      case Seq() => Seq(URI("avatar-man.png"))
+      case Seq() => Seq(URI("img/avatar-man.png"))
       case other => other
     }
     def increment(e: ReactEventI) = ST.mod(_+1)

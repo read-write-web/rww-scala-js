@@ -127,7 +127,6 @@ object FoafStyles extends StyleSheet.Inline {
   )
 
   val basic = style(
-    width(400 px)
   )
 
 
