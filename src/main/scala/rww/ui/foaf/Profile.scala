@@ -8,7 +8,6 @@ import org.w3.banana.PointedGraph
 import rww.ontology._
 import rww.store.WebAgent
 import rww.ui.RwwPages
-import rww.ui.foaf.PersonBasicInfo
 
 import scalacss.ScalaCssReact._
 

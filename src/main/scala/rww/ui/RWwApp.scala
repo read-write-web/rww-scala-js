@@ -15,11 +15,12 @@ import rx.core.Var
 import spatutorial.client.components.GlobalStyles
 
 import scala.collection.immutable.ListSet
-import scala.scalajs.js.JSApp
-import scala.scalajs.js.annotation.JSExport
+import scala.scalajs.js
+import scala.scalajs.js.URIUtils._
+import scala.scalajs.js.annotation.{JSExport, JSExportNamed}
+import scala.util.Try
 import scalacss.Defaults._
 import scalacss.ScalaCssReact._
-import scala.scalajs.js.URIUtils._
 
 
 /**
@@ -38,15 +39,40 @@ object Component {
   def apply(uri: jURI) = new Component(encodeURIComponent(uri.toString))
 }
 
+@JSExport
+object RWwApp {
 
 
-@JSExport("SPAMain")
-object SPAMain extends JSApp {
+  @JSExportNamed
+  def main(dashboardUri: js.UndefOr[String],
+           proxySrvc: String,
+           dev_proxySrvc: js.UndefOr[String],
+           webIDauth: js.Array[String]) = {
+    val authEndpoints = webIDauth.flatMap(u=> Try(new jURI(u)).toOption.toList)
+    val origin = new jURI(scalajs.dom.window.location.origin)
+    val proxy = dev_proxySrvc.flatMap(p=>
+      if (List("localhost","127.0.0.1").contains(origin.getAuthority))
+         dev_proxySrvc
+      else js.undefined
+    ).getOrElse(proxySrvc)
+
+    new RWwApp(dashboardUri.getOrElse(""), proxy, authEndpoints.toList).run()
+  }
+}
+
+
+
+class RWwApp( startURI: String,
+              proxyService: String,
+              authEndpoints: List[jURI]) {
   import rww.Rdf
   import rww.Rdf.ops._
+
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
-  val defaultUri = "http://bblfish.net/people/henry/card#me"  //todo: pass this as parameter
+  val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
+  val origin = new jURI(scalajs.dom.window.location.origin)
+
   val windowHistory = Var(ListSet[jURI]())
   val urlPathMatcher = ".*"
 
@@ -59,7 +85,7 @@ object SPAMain extends JSApp {
     import dsl._
     val displayRoute: Route[Component] = ("#url" / string(urlPathMatcher)).caseclass1(Component.apply)(Component.unapply)
     ( emptyRule
-      | staticRoute(root,URLEntry) ~> renderR{ (ctl) => Dashboard( defaultUri, u=>ctl.set(Component(u)) ) }
+      | staticRoute(root,URLEntry) ~> renderR{ (ctl) => Dashboard( startURI, u=>ctl.set(Component(u)) ) }
       | dynamicRouteCT(displayRoute) ~> dynRenderR{ (cmpnent,ctl) =>
          windowHistory() = windowHistory() + cmpnent.asURI
          PNGWindow(cmpnent.asURI,ws, ctl)
@@ -85,23 +111,27 @@ object SPAMain extends JSApp {
     )
   }
 
-  def proxy(uri: Rdf#URI): Rdf#URI = URI("https://rww.io/proxy.php?uri="+uri.toString)
+  //todo: should the method return \/[URI,URI] to indicate if a proxy was used?
+  def proxy(uri: Rdf#URI): Rdf#URI =
+    if (uri.getScheme == origin.getScheme
+      && uri.getAuthority == origin.getAuthority
+      && uri.getPort == origin.getPort)
+      uri
+    else URI(proxyService + uri.toString)
 
   val ws = new WebAgent(proxy)
 
-
-  @JSExport
-  def main(): Unit = {
+  def run(): Unit = {
     // tell React to render the router in the document body
     GlobalStyles.addToDocument()
     FoafStyles.addToDocument()
 
-
-    val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
     val router =  Router(baseUrl, routerConfig)
     React.render( router(), dom.document.body)
-   }
+  }
 
 
 
 }
+
+

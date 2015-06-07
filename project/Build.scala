@@ -8,7 +8,7 @@ import sbt._
  * You normally don't have to touch the actual build definition after this.
  */
 
-object RwwScalaJS extends Build {
+object RWwScalaJS extends Build {
 
   type PE = Project => Project
 

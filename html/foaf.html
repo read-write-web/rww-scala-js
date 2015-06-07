@@ -5,10 +5,17 @@
     <title>scalajs-react</title>
     <script type="text/javascript" src="../target/scala-2.11/rww-scala-js-jsdeps.js"></script>
     <script type="text/javascript" src="../target/scala-2.11/rww-scala-js-fastopt.js"></script>
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
   </head>
-  <body onload="rww.ui.SPAMain().main()">
+  <body onload="rww.ui.RWwApp().main({
+    'dashboardUri': 'http://bblfish.net/people/henry/card#me',
+    'proxySrvc': 'https://rww.io/proxy.php?uri=',
+    'dev_proxySrvc': 'https://localhost:8443/srv/cors?url=',
+    'webIDauth' : ['https://rww.io/']
+  })">
   <p>if you do not see this, it is probably because you have JavaScript disabled. This
   application requires it to run.  We do hope to try to build a backup for non JS
   enabled clients at some point, though that requires a lot more engineering.</p>
