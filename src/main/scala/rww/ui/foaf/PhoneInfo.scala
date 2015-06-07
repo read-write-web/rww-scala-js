@@ -15,7 +15,7 @@ object PhoneInfo {
     .initialState(None)
     .render((P,S,B)=> {
     val m = P
-    <.li(style.floatLeft)(
+    <.li()(
       <.div(style.titleCase)("Phone"),
       <.div(style.content)(
         (for (

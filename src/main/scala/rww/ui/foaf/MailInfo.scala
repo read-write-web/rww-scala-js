@@ -15,7 +15,7 @@ object MailInfo {
     .initialState(None)
     .render((P,S,B)=> {
     val m = P
-    <.li(style.floatLeft)(
+    <.li()(
       <.div(style.titleCase)("Email"),
       <.div(style.content)(
         (for (
