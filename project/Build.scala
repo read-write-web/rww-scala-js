@@ -19,6 +19,7 @@ object RWwScalaJS extends Build {
     description := "Read/Write SoLiD User Interface in Scala-JS",
     licenses := Seq("Apache License, Version 2.0" -> url("http://opensource.org/licenses/Apache-2.0")),
     homepage := Some(url("https://github.com/read-write-web/rww-scala-js")),
+    resolvers += "bblfish-snapshots" at "http://bblfish.net/work/repo/snapshots",
     publishTo := {
       //eg: export SBT_PROPS=-Dbanana.publish=bblfish.net:/home/hjs/htdocs/work/repo/
       val nexus = "https://oss.sonatype.org/"
