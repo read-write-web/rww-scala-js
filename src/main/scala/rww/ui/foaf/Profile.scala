@@ -8,15 +8,11 @@ import org.w3.banana.PointedGraph
 import rww.ontology._
 import rww.store.WebAgent
 import rww.ui.RwwPages
+import rx.Var
+import rww.Rdf
 
 import scalacss.ScalaCssReact._
 
-
-case class WProps[O](about: O,
-                     webAgent: WebAgent,
-                     ctl: RouterCtl[RwwPages],
-                     edit: Boolean = false
-                     )
 
 object Profile {
 

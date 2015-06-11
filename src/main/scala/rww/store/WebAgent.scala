@@ -1,10 +1,11 @@
 package rww.store
 
 import java.io.StringReader
+import java.net.{URI=>jURI}
 
 import org.scalajs.dom
 import org.scalajs.dom.ext.AjaxException
-import org.scalajs.dom.raw.{XMLHttpRequest, ProgressEvent}
+import org.scalajs.dom.raw.{ProgressEvent, XMLHttpRequest}
 import org.w3.banana.RDFOps
 import org.w3.banana.io._
 import rww.Rdf
@@ -12,14 +13,30 @@ import rx.Var
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.scalajs.js
+import scala.scalajs.js.UndefOr
 import scala.util.{Failure, Success, Try}
 
 sealed trait RequestState
 sealed trait Response {
+  import Response._
   def code: Int
   def headers: String
   def body: String
+  def header(name: String) = {
+    headers.lines.collect{
+      case attVal(att,value) if name.equalsIgnoreCase(att.trim) => value.trim
+    }.toList
+  }
 }
+object Response {
+  val attVal = "([^:]+):(.*)".r
+}
+
+//trait HttpAction
+//case class Post extends HttpAction
+//case class Patch extends HttpAction
+//case class Delete extends HttpAction
+//case class Query extends HttpAction
 
 object UnRequested extends RequestState
 case class Downloading(uri: Rdf#URI, percentage: Option[Double]=None) extends RequestState
@@ -30,6 +47,21 @@ case class Ok(code: Int,
               headers: String,
               body: String,
               parsed: Try[Rdf#Graph] ) extends RequestState with Response
+
+//for things that still need to be pushed remotely.
+//case class ToDo(url: Rdf#URI,action: HttpAction) extends RequestState
+
+
+object CacheMode extends Enumeration {
+  type CacheMode = Value
+
+  /** only fetch what is in the cache */
+  val CacheOnly = Value
+  /** Fetch if not in the cahce */
+  val UnlessCached = Value
+  /** Force a fetch even if something is in the cache */
+  val Force = Value
+}
 
 /**
  *
@@ -45,99 +77,105 @@ class WebAgent(proxy: Rdf#URI => Rdf#URI = (u: Rdf#URI)=>u)
                            rdrJSONLD: RDFReader[Rdf, Future, JsonLd]) {
 
   import ops._
+  import rww.store.CacheMode.CacheMode
+
 
   //todo: use WeakMap https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
   //use code from https://github.com/scala-js/scala-js/blob/master/javalanglib/src/main/scala/java/lang/System.scala
-  private val cache = new collection.mutable.HashMap[Rdf#URI, Var[RequestState]]()
+  private val cache = {
+    val c = new collection.mutable.HashMap[Rdf#URI, Var[RequestState]]()
+    c.withDefault{key=>
+      val v: Var[RequestState] = new Var(UnRequested)
+      c.put(key,v) //we still need to actually add the value into the collection
+      v
+    }
+  }
 
   //todo Q: should fetch return anything?
-  def fetch(url: Rdf#URI, counter: Int = 1): Var[RequestState] = {
+  def fetch(url: Rdf#URI, mode: CacheMode = CacheMode.UnlessCached, counter: Int = 1): Var[RequestState] = {
     // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
     //and for CORS see http://www.html5rocks.com/en/tutorials/cors/
+    import CacheMode._
+    println(s"fetching $url")
     val base = url.fragmentLess
-    import org.w3.banana.TryW
-    cache.get(base) match {
-      case Some(res) => res() match {
-        case Redirected(to) => if( counter >= 0) fetch(to, counter-1) else res
-        case other => res
+    val valueRx = cache(base)
+    valueRx() match {
+      case Redirected(to) => if( counter >= 0) fetch(to, mode, counter-1) else valueRx
+      case _ if mode == CacheOnly => valueRx  // we still want to follow redirects
+      case UnRequested => { forceFetch(base,valueRx); valueRx }
+      case _ => valueRx
+
+    }
+  }
+
+  protected
+  def forceFetch(base: Rdf#URI, reqStateVar: Var[RequestState]) = {
+
+    import scalaz.Scalaz._
+    val proxiedURL = proxy(base)
+    AjaxPlus.get(
+      proxiedURL.toString,
+      headers = Map("Accept" -> "application/n-triples,application/ld+json;q=0.8,text/turtle;q=0.8"),
+      progress = (ev: ProgressEvent) => {
+        if (ev.lengthComputable && ev.loaded != ev.total) reqStateVar.update(Downloading(base, (ev.lengthComputable).option(ev.loaded / ev.total)))
       }
-      case None => {
-        import scalaz.Scalaz._
+    ) onComplete { xhrTry: Try[dom.XMLHttpRequest] =>
 
-        val proxiedURL = proxy(base)
-        val reqStateVar: Var[RequestState] = Var(Downloading(base))
-        cache.put(base,reqStateVar)
-        AjaxPlus.get(
-          proxiedURL.toString,
-          headers = Map("Accept" -> "application/n-triples,application/ld+json;q=0.8,text/turtle;q=0.8"),
-          progress = (ev: ProgressEvent) => {
-            if (ev.lengthComputable && ev.loaded != ev.total) reqStateVar.update(Downloading(base,(ev.lengthComputable).option(ev.loaded/ev.total)))
-          }
-        ) onComplete { xhrTry =>
-
-          def cacheStateOf(xhr: XMLHttpRequest)(finalURLToState: Rdf#URI => RequestState): Unit = {
-            val redirectURLOpt = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[js.UndefOr[String]]
-            val finalURL = redirectURLOpt.map { redirectURLstr =>
-              val redirectURL = URI(redirectURLstr)
-              if (redirectURL == proxiedURL) base else redirectURL
-            } getOrElse {
-              base
-            }
-            val finalURLVar: Var[RequestState] = if (finalURL != base) {
-              reqStateVar.update(Redirected(finalURL))
-              cache.get(finalURL).getOrElse{
-                val v: Var[RequestState] = Var(Downloading(base))
-                cache.put(finalURL, v)
-                v
-              }
-            } else reqStateVar
-
-            finalURLVar.update(finalURLToState(finalURL))
-          }
-
-          xhrTry match {
-            case Success(xhr) => {
-              // responseURL is quite new. See https://xhr.spec.whatwg.org/#the-responseurl-attribute
-              // hence need for UndefOr
-              // todo: to remove dynamic use need to fix https://github.com/scala-js/scala-js-dom/issues/111
-              val rh = Option(xhr.getResponseHeader("Content-Type"))
-              val reader = new StringReader(xhr.responseText)
-              for {
-                g <- rh.map(_.takeWhile(_ != ';').trim.toLowerCase) match {
-                  case Some("application/n-triples") => rdrNT.read(reader, base.toString).asFuture
-                  case Some("application/ld+json") => rdrJSONLD.read(reader, base.toString)
-                  case Some("text/turtle") => rdrTurtle.read(reader, base.toString)
-                  case Some(other) => Future.failed(new Exception("could not find parser for " + other))
-                  case None => Future.failed(new Exception("problem fetching remote resource:" + xhr.statusText))
-                }
-              } yield {
-
-                cacheStateOf(xhr) { graphUrl =>
-                  Ok(xhr.status,
-                    graphUrl,
-                    xhr.getAllResponseHeaders(),
-                    xhr.responseText,
-                    Success(g)
-                  )
-                }
-              }
-            }
-            case Failure(AjaxException(xhr)) => {
-              println(s"Failure for <$base> with code ${xhr.status}")
-              //todo: deal with redirects here too
-              cacheStateOf(xhr)(url => HttpError(code = xhr.status, headers = xhr.getAllResponseHeaders(), body = xhr.responseText))
-            }
-            case Failure(other) => {
-              //todo: deal correctly with redirects here too if it makes sense
-              println(s"Other failure! " + other.toString)
-              reqStateVar.update(HttpError(code = 477, headers = "", body = other.toString))
-            }
-          }
-
-          //doit
-
+      def cacheStateOf(xhr: XMLHttpRequest)(finalURLToState: (Rdf#URI) => RequestState): Unit = {
+        val redirectURLOpt = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[UndefOr[String]]
+        val finalURL = redirectURLOpt.map { redirectURLstr =>
+          val redirectURL = URI(redirectURLstr)
+          if (redirectURL == proxiedURL) base else redirectURL
+        } getOrElse {
+          base
         }
-        reqStateVar
+        val finalURLVar: Var[RequestState] = if (finalURL != base) {
+          reqStateVar.update(Redirected(finalURL))
+          val res = cache(finalURL)
+          res update { Downloading(base) }
+          res
+        } else reqStateVar
+
+        finalURLVar.update(finalURLToState(finalURL))
+      }
+
+      xhrTry match {
+        case Success(xhr) => {
+          import org.w3.banana.TryW
+          // responseURL is quite new. See https://xhr.spec.whatwg.org/#the-responseurl-attribute
+          // hence need for UndefOr
+          // todo: to remove dynamic use need to fix https://github.com/scala-js/scala-js-dom/issues/111
+          val rh = Option(xhr.getResponseHeader("Content-Type"))
+          val reader = new StringReader(xhr.responseText)
+          for {
+            g <- rh.map(_.takeWhile(_ != ';').trim.toLowerCase) match {
+              case Some("application/n-triples") => rdrNT.read(reader, base.toString).asFuture
+              case Some("application/ld+json") => rdrJSONLD.read(reader, base.toString)
+              case Some("text/turtle") => rdrTurtle.read(reader, base.toString)
+              case Some(other) => Future.failed(new scala.Exception("could not find parser for " + other))
+              case None => Future.failed(new scala.Exception("problem fetching remote resource:" + xhr.statusText))
+            }
+          } yield {
+            cacheStateOf(xhr) { graphUrl =>
+              Ok(xhr.status,
+                graphUrl,
+                xhr.getAllResponseHeaders(),
+                xhr.responseText,
+                Success(g)
+              )
+            }
+          }
+        }
+        case Failure(AjaxException(xhr)) => {
+          println(s"Failure for <$base> with code ${xhr.status}")
+          //todo: deal with redirects here too
+          cacheStateOf(xhr)(url => HttpError(code = xhr.status, headers = xhr.getAllResponseHeaders(), body = xhr.responseText))
+        }
+        case Failure(other) => {
+          //todo: deal correctly with redirects here too if it makes sense
+          println(s"Other failure! " + other.toString)
+          reqStateVar.update(HttpError(code = 477, headers = "", body = other.toString))
+        }
       }
     }
   }

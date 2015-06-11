@@ -10,7 +10,7 @@ import org.scalajs
 import org.scalajs.dom
 import rww._
 import rww.store.WebAgent
-import rww.ui.foaf.FoafStyles
+import rww.ui.foaf.{UserConfig, WProps, FoafStyles}
 import rx.core.Var
 import spatutorial.client.components.GlobalStyles
 
@@ -37,11 +37,12 @@ case class Component(encodedUrl: String) extends RwwPages {
 }
 object Component {
   def apply(uri: jURI) = new Component(encodeURIComponent(uri.toString))
+  def uri(uri: Rdf#URI) = new Component(encodeURIComponent(uri.toString))
+
 }
 
 @JSExport
 object RWwApp {
-
 
   @JSExportNamed
   def main(dashboardUri: js.UndefOr[String],
@@ -68,7 +69,6 @@ object RWwApp {
 class RWwApp( startURI: String,
               proxyService: String,
               authEndpoints: List[jURI]) {
-  import rww.Rdf
   import rww.Rdf.ops._
 
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
@@ -76,7 +76,11 @@ class RWwApp( startURI: String,
   val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
   val origin = new jURI(scalajs.dom.window.location.origin)
 
+  val ws = new WebAgent(proxy)
+
   val windowHistory = Var(ListSet[jURI]())
+  val id: Var[UserConfig] = Var(UserConfig())  //todo: later add to app preferences https://github.com/read-write-web/rww-scala-js/issues/17
+
   val urlPathMatcher = ".*"
 
   def openWindow(u: jURI, ctl: RouterCtl[RwwPages]) = {
@@ -88,10 +92,10 @@ class RWwApp( startURI: String,
     import dsl._
     val displayRoute: Route[Component] = ("#url" / string(urlPathMatcher)).caseclass1(Component.apply)(Component.unapply)
     ( emptyRule
-      | staticRoute(root,URLEntry) ~> renderR{ (ctl) => Dashboard( startURI, u=>ctl.set(Component(u)) ) }
+      | staticRoute(root,URLEntry) ~> renderR{ (ctl) => Dashboard(WProps((startURI,authEndpoints),ws,id,ctl) ) }
       | dynamicRouteCT(displayRoute) ~> dynRenderR{ (cmpnent,ctl) =>
          windowHistory() = windowHistory() + cmpnent.asURI
-         PNGWindow(cmpnent.asURI,ws, ctl)
+         PNGWindow(WProps(cmpnent.asURI,ws,id,ctl))
       }
       ).notFound(redirectToPage(URLEntry)(Redirect.Replace))
   }.renderWith(layout)
@@ -122,7 +126,6 @@ class RWwApp( startURI: String,
       uri
     else URI(proxyService + uri.toString)
 
-  val ws = new WebAgent(proxy)
 
   def run(): Unit = {
     // tell React to render the router in the document body
@@ -132,8 +135,6 @@ class RWwApp( startURI: String,
     val router =  Router(baseUrl, routerConfig)
     React.render( router(), dom.document.body)
   }
-
-
 
 }
 

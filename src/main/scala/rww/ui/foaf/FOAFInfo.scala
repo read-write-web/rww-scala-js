@@ -30,7 +30,7 @@ object FOAFInfo {
     <.div(style.details)(
       <.div(^.className:="title",style.centerText,style.titleCase)("Friends"),
       <.ul(style.clearfix,style.span3,style.contacts)(
-        P.about.knows map { x=> MiniPersonInfo(P.copy(about=x))}
+        P.about.knows map { acquaintance => MiniPersonInfo(P.copy(about=acquaintance))}
       )
     )
   }).build
@@ -91,6 +91,7 @@ object WebIDBar {
             case h: HttpError => color.lightpink
             case o: Ok => color.white
             case r: Redirected => color.antiquewhite
+            case UnRequested => color.white
             //         <.div(style.webIdBar(S))(webid(P))
 
           }

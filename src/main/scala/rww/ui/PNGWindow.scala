@@ -54,6 +54,6 @@ object PNGWindow {
     .configure(OnUnmount.install)
     .build
 
-  def apply(pointer: Rdf#URI, ws: WebAgent, ctl: RouterCtl[RwwPages]) =
-    Window(WProps(pointer,ws,ctl))
+  def apply(props: WProps[Rdf#URI]) =
+    Window(props)
 }
