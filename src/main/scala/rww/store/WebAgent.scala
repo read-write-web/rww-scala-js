@@ -9,7 +9,7 @@ import org.scalajs.dom.raw.{ProgressEvent, XMLHttpRequest}
 import org.w3.banana.RDFOps
 import org.w3.banana.io._
 import rww.Rdf
-import rx.Var
+import rx.{Rx, Var}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.scalajs.js
@@ -92,7 +92,7 @@ class WebAgent(proxy: Rdf#URI => Rdf#URI = (u: Rdf#URI)=>u)
   }
 
   //todo Q: should fetch return anything?
-  def fetch(url: Rdf#URI, mode: CacheMode = CacheMode.UnlessCached, counter: Int = 1): Var[RequestState] = {
+  def fetch(url: Rdf#URI, mode: CacheMode = CacheMode.UnlessCached, counter: Int = 1): Rx[RequestState] = {
     // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
     //and for CORS see http://www.html5rocks.com/en/tutorials/cors/
     import CacheMode._
@@ -106,6 +106,8 @@ class WebAgent(proxy: Rdf#URI => Rdf#URI = (u: Rdf#URI)=>u)
       case _ => valueRx
 
     }
+    //todo: wrap Var in Rx so that no client can change the cache
+    //Rx{ valueRx() }
   }
 
   protected
