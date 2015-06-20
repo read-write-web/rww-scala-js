@@ -2,7 +2,7 @@ package rww.ui.foaf
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import rww.store.WebAgent
+import rww.store.{WebUIDB, WebActor}
 import rww.ui.rdf.NPGPath
 
 import scalacss.ScalaCssReact._
@@ -24,13 +24,13 @@ object EditableTextField {
    * @param style the style to give the component
    * @return the props
    */
-  def apply(npg: NPGPath, editMode: Boolean,title: String, style: StyleA=fstyle.name, webAgent: WebAgent) = {
+  def apply(npg: NPGPath, editMode: Boolean,title: String, style: StyleA=fstyle.name, webAgent: WebUIDB) = {
     //todo: get all the various pieces of name out
     component(Props(npg,editMode,title, style: StyleA, webAgent))
   }
 
   case class State(edit: Option[String] = None)
-  case class Props(text: NPGPath, editMode: Boolean, title: String, style: StyleA=fstyle.name, webAgent: WebAgent) {
+  case class Props(text: NPGPath, editMode: Boolean, title: String, style: StyleA=fstyle.name, webAgent: WebUIDB) {
     val placeholder = "Enter "+title
   }
   

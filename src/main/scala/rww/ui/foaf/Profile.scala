@@ -6,7 +6,7 @@ import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.w3.banana.PointedGraph
 import rww.ontology._
-import rww.store.WebAgent
+import rww.store.WebActor$
 import rww.ui.RwwPages
 import rx.Var
 import rww.Rdf

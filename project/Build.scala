@@ -65,7 +65,8 @@ object RWwScalaJS extends Build {
         "org.w3" %%% "banana-io-ntriples" % "0.8.2-SNAPSHOT",
         "org.w3" %%% "banana-n3-js" % "0.8.2-SNAPSHOT",
         "org.w3" %%% "banana-jsonld-js" % "0.8.2-SNAPSHOT",
-        "org.monifu" %%% "monifu" % "1.0-M2"
+        "org.monifu" %%% "monifu" % "1.0-M2",
+        "akka.js" %%% "akkaactor" % "0.2-SNAPSHOT"
 
         //"org.scala-lang.modules.scalajs" %%% "scalajs-dom" % "0.7-SNAPSHOT",
         //"org.scala-lang.modules.scalajs" %%% "scalajs-jquery" % "0.6",

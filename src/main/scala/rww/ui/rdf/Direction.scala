@@ -4,7 +4,7 @@ import org.w3.banana.PointedGraph
 import org.w3.banana.syntax.NodeW
 import rww.Rdf
 import rww.rdf.Named
-import rww.store.{Ok, RequestState, WebAgent}
+import rww.store.{WebUIDB, Ok, RequestState, WebActor}
 import rx.Rx
 import rx.ops._
 
@@ -126,7 +126,7 @@ case class NPGPath(target: Named[Rdf,PointedGraph[Rdf]],
    *          name of the returned graph is the same as the original then it's a 303
    *          definition.
    */
-  def jump(implicit webview: WebAgent): Option[Rx[\/[RequestState,NPGPath]]] = {
+  def jump(implicit webview: WebUIDB): Option[Rx[\/[RequestState,NPGPath]]] = {
 
     new NodeW(target.obj.pointer).fold(
       u => if (u.fragmentLess == target.name) None

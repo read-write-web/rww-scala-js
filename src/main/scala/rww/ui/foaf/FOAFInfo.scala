@@ -91,7 +91,7 @@ object WebIDBar {
             case h: HttpError => color.lightpink
             case o: Ok => color.white
             case r: Redirected => color.antiquewhite
-            case UnRequested => color.white
+            case u: UnRequested => color.white
             //         <.div(style.webIdBar(S))(webid(P))
 
           }

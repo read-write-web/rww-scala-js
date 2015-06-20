@@ -5,7 +5,7 @@ import java.net.{URI => jURI}
 import japgolly.scalajs.react.ScalazReact._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import rww.store.WebAgent
+import rww.store.{WebUIDB, WebActor}
 import rww.ui.rdf.NPGPath
 
 import scala.util.Try
@@ -31,12 +31,12 @@ trait EditableField {
    * @param style the style to give the component
    * @return the props
    */
-  def apply(npg: NPGPath, editMode: Boolean, title: String, ws: WebAgent, style: StyleA = fstyle.name) = {
+  def apply(npg: NPGPath, editMode: Boolean, title: String, ws: WebUIDB, style: StyleA = fstyle.name) = {
     //todo: get all the various pieces of name out
     component(Props(npg, editMode, title, ws, style: StyleA))
   }
 
-  case class Props(display: NPGPath, editMode: Boolean, title: String, ws: WebAgent, style: StyleA = fstyle.name) {
+  case class Props(display: NPGPath, editMode: Boolean, title: String, ws: WebUIDB, style: StyleA = fstyle.name) {
     val placeholder = "Enter " + title
   }
 

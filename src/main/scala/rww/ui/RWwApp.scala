@@ -9,7 +9,7 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs
 import org.scalajs.dom
 import rww._
-import rww.store.WebAgent
+import rww.store.{WebUIDB, WebActor, WebActor$}
 import rww.ui.foaf.{UserConfig, WProps, FoafStyles}
 import rx.core.Var
 import spatutorial.client.components.GlobalStyles
@@ -71,12 +71,10 @@ class RWwApp( startURI: String,
               authEndpoints: List[jURI]) {
   import rww.Rdf.ops._
 
-  import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
-
   val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
   val origin = new jURI(scalajs.dom.window.location.origin)
 
-  val ws = new WebAgent(proxy)
+  val ws = WebUIDB(proxy)
 
   val windowHistory = Var(ListSet[jURI]())
   val id: Var[UserConfig] = Var(UserConfig())  //todo: later add to app preferences https://github.com/read-write-web/rww-scala-js/issues/17
@@ -119,12 +117,15 @@ class RWwApp( startURI: String,
   }
 
   //todo: should the method return \/[URI,URI] to indicate if a proxy was used?
-  def proxy(uri: Rdf#URI): Rdf#URI =
-    if (uri.getScheme == origin.getScheme
-      && uri.getAuthority == origin.getAuthority
-      && uri.getPort == origin.getPort)
+  def proxy(uri: Rdf#URI): Rdf#URI = {
+    val juri = new jURI(uri.toString)
+    if (juri.getScheme == origin.getScheme
+      && juri.getAuthority == origin.getAuthority
+      && juri.getPort == origin.getPort)
       uri
-    else URI(proxyService + uri.toString)
+    else rww.Rdf.ops.URI(proxyService + uri.toString)
+  }
+
 
 
   def run(): Unit = {

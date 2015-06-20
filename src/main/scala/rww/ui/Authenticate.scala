@@ -51,8 +51,8 @@ object Authenticate {
             <.span("authenticated as ", <.a(P.ctl.setOnClick(Component.uri(newId)))(id))
           }.getOrElse(<.span("could not authenticate"))
         }
-        case HttpError(code, _, _) => <.span("Could not authenticate. Returned with " + code)
-        case UnRequested => <.span()
+        case HttpError(_,code, _, _) => <.span("Could not authenticate. Returned with " + code)
+        case UnRequested(_) => <.span()
         case _ => <.span("Authenticating...")
       })
     )
