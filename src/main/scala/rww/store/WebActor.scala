@@ -2,7 +2,7 @@ package rww.store
 
 import java.net.{URI => jURI}
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor._
 import com.typesafe.config.ConfigFactory
 import org.scalajs.dom
 import org.scalajs.dom.ext.AjaxException
@@ -179,10 +179,6 @@ class WebActor(
   rdrJSONLD: RDFReader[Rdf, Future, JsonLd]
 ) extends Actor {
 
-  import WebActor._
-
-  println("WebActor.ops="+ops)
-
   @throws[Exception](classOf[Exception])
   override def preStart() = {
     db.setWebActor(context.self)
@@ -193,7 +189,7 @@ class WebActor(
   //todo: garbage collection of actors, to limit memory usage
   def actor(u: Rdf#URI): ActorRef =
     resourceActors.get(u).getOrElse {
-      val newRA = system.actorOf(Props(classOf[WebResourceActor], u))
+      val newRA = context.actorOf(WebResourceActor.props(u))
       resourceActors += u -> newRA
       newRA
     }

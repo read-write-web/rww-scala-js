@@ -2,20 +2,30 @@ package rww.store
 
 import java.io.StringReader
 
-import akka.actor.Actor.Receive
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Props, Actor, ActorRef}
 import org.scalajs.dom
 import org.scalajs.dom.ext.AjaxException
 import org.scalajs.dom.raw.{ProgressEvent, XMLHttpRequest}
 import org.w3.banana.RDFOps
 import org.w3.banana.io.{JsonLd, NTriples, RDFReader, Turtle}
-import rww._
+import rww.Rdf
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js
 import scala.scalajs.js.UndefOr
 import scala.util.{Failure, Success, Try}
 
+object WebResourceActor {
+  //see http://doc.akka.io/docs/akka/2.3.11/scala/actors.html#props
+  def props(u: Rdf#URI)(implicit
+    ops: RDFOps[Rdf],
+    rdrNT: RDFReader[Rdf, Try, NTriples],
+    rdrTurtle: RDFReader[Rdf, Future, Turtle],
+    rdrJSONLD: RDFReader[Rdf, Future, JsonLd]
+  ): Props = {
+    Props(new WebResourceActor(u)(ops,rdrNT,rdrTurtle,rdrJSONLD))
+  }
+}
 
 /**
  * Created by hjs on 19/06/2015.
@@ -41,9 +51,7 @@ class WebResourceActor(
 
 
   override def receive = {
-    case Get(base, proxy, mode) => {
-      forceFetch(base, proxy, context.sender())
-    }
+    case g@Get(base, proxy, mode) => forceFetch(base, proxy, context.sender())
     case Update(base, remove, add) => vsimplePatch(base,remove,add)
     case rs: RequestState =>  state = rs //for dealing with redirects
   }
@@ -51,6 +59,7 @@ class WebResourceActor(
   protected
   def forceFetch(base: Rdf#URI, proxiedURL: Rdf#URI, sender: ActorRef) = {
     import scalaz.Scalaz._
+    import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
     AjaxPlus.get(
       proxiedURL.toString,
@@ -67,10 +76,11 @@ class WebResourceActor(
         // todo: to remove dynamic use need to fix https://github.com/scala-js/scala-js-dom/issues/111
         val redirectURLOpt = xhr.asInstanceOf[js.Dynamic].responseURL.asInstanceOf[UndefOr[String]]
         val finalURL = redirectURLOpt.map { redirectURLstr =>
-          if (redirectURLstr == proxiedURL || redirectURLstr == "")
+          val redirectURL = URI(redirectURLstr)
+          if (redirectURL == proxiedURL || redirectURLstr == "")
             base
           else
-            URI(redirectURLstr)
+            redirectURL
         } getOrElse {
           base
         }
@@ -120,7 +130,7 @@ class WebResourceActor(
     }
   }
 
-
+  protected
   def vsimplePatch(url: Rdf#URI, remove: Rdf#Triple, add: Rdf#Triple): Unit = {
     state match {
       case Ok(code, url, headers, body, parsed) => {
