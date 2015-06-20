@@ -1,6 +1,7 @@
 package rww.ui.foaf
 
 import scalacss.Defaults._
+import scalacss.StyleF
 
 
 object FoafStyles extends StyleSheet.Inline {
@@ -8,11 +9,11 @@ object FoafStyles extends StyleSheet.Inline {
   import dsl._
 
   //  val darkGrey =  0x24221f
-  val mediumGrey = "#938b7f"
+  val mediumGrey = c"#938b7f"
   //  val lightGrey =  0xe2e2e2
-  val lighterGrey = "#ededed"
-  val lightestGrey = "#f8f8f8"
-  val myBlue = "#3fabd3"
+  val lighterGrey = c"#ededed"
+  val lightestGrey = c"#f8f8f8"
+  val myBlue = c"#3fabd3"
   //  val lightYellow =  0xfffdcb
   //  val lightRed =  0xffe6e6
   //  val red =  0xb80b5b
@@ -191,7 +192,7 @@ object FoafStyles extends StyleSheet.Inline {
   val titleCase = style("title-case")(
     fontWeight.bold,
     textTransform.uppercase,
-    color("#000000")
+    color(c"#000000")
   )
 
   val span3 = style(
@@ -207,7 +208,7 @@ object FoafStyles extends StyleSheet.Inline {
   )
 
   val body = style(
-    backgroundColor("#EDEDED"),
+    backgroundColor(c"#EDEDED"),
     minHeight(98 %%),
     width(100 %%),
     minWidth(1000 px),
@@ -257,7 +258,7 @@ object FoafStyles extends StyleSheet.Inline {
       overflow.hidden,
       float.right)
 
-  val contactPix = intStyle(0 to 1)(i=>
+  val contactPix = styleF.int(0 to 1)(i=>
     styleS(
         border(1 px),
         position.absolute,
@@ -271,7 +272,7 @@ object FoafStyles extends StyleSheet.Inline {
     )
   )
 
-  val webIdBar = intStyle(0 to 100)(i =>
+  val webIdBar = styleF.int(0 to 100)(i =>
     styleS(
        backgroundColor(if (i<30) yellow else if (i<65) yellowgreen else green)
     )
