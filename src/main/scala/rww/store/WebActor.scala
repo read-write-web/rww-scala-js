@@ -10,7 +10,6 @@ import org.scalajs.dom.raw.ProgressEvent
 import org.w3.banana.RDFOps
 import org.w3.banana.io._
 import rww.Rdf
-import rww.store.CacheMode.CacheMode
 import rx.{Rx, Var}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -54,16 +53,14 @@ case class Ok(code: Int,
 //case class ToDo(url: Rdf#URI,action: HttpAction) extends RequestState
 
 
-object CacheMode extends Enumeration {
-  type CacheMode = Value
+sealed trait CacheMode
+/** Only Fetch from Cache */
+object CacheOnly extends CacheMode
+/** Fetch if not in the cache */
+object UnlessCached extends CacheMode
+/** Force a fetch even if something is in the cache */
+object Force extends CacheMode
 
-  /** only fetch what is in the cache */
-  val CacheOnly = Value
-  /** Fetch if not in the cahce */
-  val UnlessCached = Value
-  /** Force a fetch even if something is in the cache */
-  val Force = Value
-}
 
 //commands
 case class Get(uri: Rdf#URI, proxy: Rdf#URI, mode: CacheMode)
@@ -121,10 +118,9 @@ class WebUIDB(
   }
 
   //note: it is the caller's responsibility here to follow redirects
-  def fetch(url: Rdf#URI, mode: CacheMode = CacheMode.UnlessCached, counter: Int = 1): Rx[RequestState] = {
+  def fetch(url: Rdf#URI, mode: CacheMode = UnlessCached, counter: Int = 1): Rx[RequestState] = {
     // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
     //and for CORS see http://www.html5rocks.com/en/tutorials/cors/
-    import CacheMode._
     println(s"fetching $url")
     val base = url.fragmentLess
     val valueRx = cache(base)
@@ -184,6 +180,8 @@ class WebActor(
 ) extends Actor {
 
   import WebActor._
+
+  println("WebActor.ops="+ops)
 
   @throws[Exception](classOf[Exception])
   override def preStart() = {

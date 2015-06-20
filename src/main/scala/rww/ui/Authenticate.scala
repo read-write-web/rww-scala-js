@@ -17,7 +17,6 @@ import spatutorial.client.components.GlobalStyles
  */
 object Authenticate {
   @inline private def bss = GlobalStyles.bootstrapStyles
-  import CacheMode._
   import rww.Rdf.ops._
 
   def fetch(p: WProps[List[jURI]],mode: CacheMode) = p.webAgent.fetch(p.about.head,mode)
