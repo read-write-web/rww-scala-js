@@ -46,28 +46,27 @@ object RWwApp {
 
   @JSExportNamed
   def main(dashboardUri: js.UndefOr[String],
-           proxySrvc: String,
+           proxySrvc: js.UndefOr[String],
            dev_proxySrvc: js.UndefOr[String],
            webIDauth: js.Array[String]) = {
     val authEndpoints = webIDauth.flatMap(u=> Try(new jURI(u)).toOption.toList)
     val origin = new jURI(scalajs.dom.window.location.origin)
     val proxy = dev_proxySrvc.map(new jURI(_)).flatMap(p=>
-
       if (List("localhost","127.0.0.1").contains(origin.getHost)
         && origin.getPort == p.getPort
         && origin.getScheme == p.getScheme)
          dev_proxySrvc
       else js.undefined
-    ).getOrElse(proxySrvc)
+    ).orElse(proxySrvc)
 
-    new RWwApp(dashboardUri.getOrElse(""), proxy, authEndpoints.toList).run()
+    new RWwApp(dashboardUri.getOrElse(""), proxy.toOption, authEndpoints.toList).run()
   }
 }
 
 
 
 class RWwApp( startURI: String,
-              proxyService: String,
+              proxyService: Option[String],
               authEndpoints: List[jURI]) {
   import rww.Rdf.ops._
 
@@ -118,12 +117,14 @@ class RWwApp( startURI: String,
 
   //todo: should the method return \/[URI,URI] to indicate if a proxy was used?
   def proxy(uri: Rdf#URI): Rdf#URI = {
-    val juri = new jURI(uri.toString)
-    if (juri.getScheme == origin.getScheme
-      && juri.getAuthority == origin.getAuthority
-      && juri.getPort == origin.getPort)
-      uri
-    else rww.Rdf.ops.URI(proxyService + uri.toString)
+    proxyService.map { proxyUri =>
+      val juri = new jURI(uri.toString)
+      if (juri.getScheme == origin.getScheme
+        && juri.getAuthority == origin.getAuthority
+        && juri.getPort == origin.getPort)
+        uri
+      else rww.Rdf.ops.URI(proxyUri + uri.toString)
+    } getOrElse uri
   }
 
 
