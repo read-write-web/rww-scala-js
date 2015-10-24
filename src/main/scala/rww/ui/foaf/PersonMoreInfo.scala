@@ -1,10 +1,9 @@
 package rww.ui.foaf
 
 import japgolly.scalajs.react.ReactComponentB
-import japgolly.scalajs.react.extra.LogLifecycle
+import japgolly.scalajs.react.vdom.prefix_<^._
 import rww.ontology.Person
 import rww.ui.foaf.{FoafStyles => style}
-import japgolly.scalajs.react.vdom.prefix_<^._
 
 import scalacss.ScalaCssReact._
 
@@ -14,7 +13,7 @@ import scalacss.ScalaCssReact._
 object PersonMoreInfo {
   val PersonMoreInfo =  ReactComponentB[WProps[Person]]("PersonMoreInfo")
     .initialState(None)
-    .render((P,S,B)=> {
+    .renderP(($,P)=> {
       val p = P.about
       <.div(style.details)(
         <.div(^.className:="title",style.centerText,style.titleCase)("Details"),

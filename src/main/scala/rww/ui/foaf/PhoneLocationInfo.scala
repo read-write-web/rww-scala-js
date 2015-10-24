@@ -12,7 +12,7 @@ import scalacss.ScalaCssReact._
 object PhoneLocationInfo {
   val ContactLocationInfo = ReactComponentB[WProps[(String,ContactLocation)]]("ContactLocationInfo")
     .initialState(None)
-    .render((P,S,B)=> {
+    .renderP(($,P)=> {
     val (homeTp,cl) = P.about
     li()(
       span(style.clearfix,style.span3)(

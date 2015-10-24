@@ -2,9 +2,9 @@ package rww.ui
 
 import java.net.{URI => jURI}
 
-import japgolly.scalajs.react.React
-import japgolly.scalajs.react.extra.router2.StaticDsl.Route
-import japgolly.scalajs.react.extra.router2._
+import japgolly.scalajs.react.ReactDOM
+import japgolly.scalajs.react.extra.router.StaticDsl.Route
+import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs
 import org.scalajs.dom
@@ -87,7 +87,7 @@ class RWwApp( startURI: String,
 
   val routerConfig = RouterConfigDsl[RwwPages].buildConfig { dsl =>
     import dsl._
-    val displayRoute: Route[Component] = ("#url" / string(urlPathMatcher)).caseclass1(Component.apply)(Component.unapply)
+    val displayRoute: Route[Component] = ("#url" / string(urlPathMatcher)).caseClass[Component]
     ( emptyRule
       | staticRoute(root,URLEntry) ~> renderR{ (ctl) => Dashboard(WProps((startURI,authEndpoints),ws,id,ctl) ) }
       | dynamicRouteCT(displayRoute) ~> dynRenderR{ (cmpnent,ctl) =>
@@ -135,7 +135,7 @@ class RWwApp( startURI: String,
     FoafStyles.addToDocument()
 
     val router =  Router(baseUrl, routerConfig)
-    React.render( router(), dom.document.body)
+    ReactDOM.render( router(), dom.document.body)
   }
 
 }

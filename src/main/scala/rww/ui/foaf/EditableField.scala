@@ -11,7 +11,6 @@ import rww.ui.rdf.NPGPath
 import scala.util.Try
 import scalacss.ScalaCssReact._
 import scalacss.StyleA
-import scalaz.effect.IO
 
 /**
  * Generalised Editable Text field.
@@ -42,14 +41,14 @@ trait EditableField {
 
   val component = ReactComponentB[Props]("EditableTextBox")
     .initialState[Option[String]](None)
-    .renderS(($, P, S) => {
+    .renderPS(($, P, S) => {
     val nameOpt = objToTag($.props.display)
     if (!P.editMode || (S.isEmpty && nameOpt.isDefined))
-      <.div(P.style, ^.title := P.title, ^.onClick ~~> $._runState(enterEdit(P,S)))(nameOpt)
-    else <.form(^.onSubmit ~~> $._runState(handleSubmit(P, S)))(
+      <.div(P.style, ^.title := P.title, ^.onClick ==> $._runState(enterEdit(P,S)))(nameOpt)
+    else <.form(^.onSubmit ==> $._runState(handleSubmit(P, S)))(
       <.input(P.style, ^.tpe := "text", ^.placeholder := P.placeholder,
         ^.value := S,
-        ^.onChange ~~> $._runState(onChange)
+        ^.onChange ==> $._runState(onChange)
       )
     )
   }).build
@@ -66,7 +65,7 @@ trait EditableField {
   }
 
   def handleSubmit(props: Props, stateopt: Option[String])(e: ReactEventI) =
-    ST.retM(e.preventDefaultIO)  addCallback IO {
+    ST.retM(e.preventDefaultCB)  addCallback Callback {
       val f = for {
         text <- stateopt
         value <- validate(text).toOption

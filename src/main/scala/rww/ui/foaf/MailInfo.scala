@@ -13,14 +13,13 @@ import scalacss.ScalaCssReact._
 object MailInfo {
   val MailInfo = ReactComponentB[Mbox]("Mail Info")
     .initialState(None)
-    .render((P,S,B)=> {
-    val m = P
+    .renderP(($,P)=> {
     <.li()(
       <.div(style.titleCase)("Email"),
       <.div(style.content)(
         (for (
-          mstr <- m.asString;
-          mbx <- m.asURIStr
+          mstr <- P.asString;
+          mbx <- P.asURIStr
         ) yield  <.a(^.href := mbx)(mstr)).getOrElse("TODO")
       )
     )

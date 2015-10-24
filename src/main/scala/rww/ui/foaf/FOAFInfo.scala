@@ -26,7 +26,7 @@ object FOAFInfo {
 
   val FOAF = ReactComponentB[WProps[Person]]("FOAF Info")
     .initialState(None)
-    .render((P, S, B) => {
+    .renderP(($,P) => {
     <.div(style.details)(
       <.div(^.className:="title",style.centerText,style.titleCase)("Friends"),
       <.ul(style.clearfix,style.span3,style.contacts)(
@@ -51,7 +51,7 @@ object MiniPersonInfo {
   val Mini = ReactComponentB[WProps[Person]]("Person Mini Box Info")
     .initialState[Option[JumpTyp]](None)
     .backend(new Backend(_))
-    .render((P, S, B) => {
+    .renderPS(($, P, S) => {
     <.li(style.contact,^.position.relative)(
       <.div(style.titleCase)(
       P.about.name.toPointer.collectFirst {
@@ -65,8 +65,11 @@ object MiniPersonInfo {
       WebIDBar(P.copy(about=(P.about.npg.pg.pointer,S.flatMap(_.swap.toOption))))
     )
   })
-    .componentWillMount(cs => cs.backend.mounting(cs.props))
-    .componentWillReceiveProps{ (CS,P) => CS.backend.runUnmount(); CS.backend.mounting(P) }
+    .componentWillMount(f => Callback(f.backend.mounting(f.props)))
+    .componentWillReceiveProps(f => Callback {
+      f.$.backend.unmount
+      f.$.backend.mounting(f.nextProps)
+    })
     .configure(OnUnmount.install)
     .build
 
@@ -79,7 +82,7 @@ object WebIDBar {
   //todo: rewrite all this with external style sheets
   val Bar = ReactComponentB[WProps[(Rdf#Node,Option[RequestState])]]("Person WebID bar")
     .stateless
-    .render((P,_) => {
+    .renderP(($,P) => {
     new NodeW[Rdf]( P.about._1).fold (
         u => {
           val bgcolorOpt = P.about._2 map {
@@ -126,7 +129,7 @@ object MiniPix {
 
   val Pix = ReactComponentB[ListSet[NPGPath]]("Person Mini Pixture")
     .initialState(0)
-    .renderS(($,P,S) => {
+    .renderP(($,P) => {
     val pixs = P.collect{
       case value if value.pg.pointer.isURI => value.pg.pointer.asInstanceOf[Rdf#URI] //is there a nicer way to do this?
     }.toSeq match {
@@ -134,13 +137,13 @@ object MiniPix {
       case other => other
     }
     def increment(e: ReactEventI) = ST.mod(_+1)
-    val i = if (P.size==0) 0 else S % P.size
+    val i = if (P.size==0) 0 else $.state % P.size
     if (pixs.size > 1) println("more than one picture for "+pixs(0))
     <.div(style.contactPixOuterBox)(
       pixs.slice(i,i+1).zipWithIndex.map { case (uri,ii) =>
         <.img(^.src := uri.getString,
           style.contactPix(ii),
-          ^.onClick ~~> $._runState(increment))
+          ^.onClick ==> $._runState(increment))
       }
     )
   }).build

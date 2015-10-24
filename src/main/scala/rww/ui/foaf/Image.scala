@@ -18,7 +18,7 @@ object Image {
   val component = ReactComponentB[WProps[Option[NPGPath]]]("Image")
     .initialState(())
 //  .backend(new Backend(_))
-    .render((P, S, B) => {
+    .renderP(($,P) => {
     val nameOpt = P.about.flatMap {
       _.pg.pointer match {
         case URI(u) => Some(u)

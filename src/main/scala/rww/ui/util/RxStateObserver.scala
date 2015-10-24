@@ -1,6 +1,6 @@
 package rww.ui.util
 
-import japgolly.scalajs.react.BackendScope
+import japgolly.scalajs.react.{Callback, BackendScope}
 import japgolly.scalajs.react.extra.OnUnmount
 import rx.Rx
 import rx.ops._
@@ -19,7 +19,9 @@ abstract class RxStateObserver[S](scope: BackendScope[_, Option[S]])
       scope.setState(Some(v))
     },true))
     onUnmount {
-      obs.map(o => o.kill())
+      Callback {
+        obs.map(o => o.kill())
+      }
     }
   }
 

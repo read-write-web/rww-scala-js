@@ -24,30 +24,32 @@ object Authenticate {
 
   class Backend(t: BackendScope[WProps[List[jURI]], Option[RequestState]])
     extends RxStateObserver[RequestState](t)  {
-    def auth(e: ReactEventI): Unit = {
-      runUnmount()
-      observeAndSetState(Some(fetch(t.props,UnlessCached)))
-      e.preventDefault
-    }
+    def auth(e: ReactEventI) = CallbackTo {
+      unmount
+      t.props.map{p=>
+        observeAndSetState(Some(fetch(p,UnlessCached)))
+        e.preventDefaultCB
+      }
+    }.void
   }
 
   val component = ReactComponentB[WProps[List[jURI]]]("Authenticate")
-    .initialStateP[Option[RequestState]](p=>Some(fetch(p,CacheOnly)()))
+    .initialState_P[Option[RequestState]](p=>Some(fetch(p,CacheOnly)()))
     .backend(new Backend(_))
-    .render((P, S, B) =>
+    .render( $ =>
     <.span()(
       <.h3("Select WebID"),
-      <.form(^.onSubmit ==> B.auth)(
+      <.form(^.onSubmit ==> $.backend.auth)(
         <.input(^.`type` := "submit", ^.value := "WebID Auth", bss.buttonXS)
       ),
-      <.p(S.get match {
+      <.p($.state.get match {
         //S here is always a Some
         case ok: Ok => {
           ok.header("User").headOption.map { id =>
             val newId = URI(id)
-            if (P.userConfig().id != newId)
-              P.userConfig() = P.userConfig().copy(id = Some(newId))
-            <.span("authenticated as ", <.a(P.ctl.setOnClick(Component.uri(newId)))(id))
+            if ($.props.userConfig().id != newId)
+              $.props.userConfig() = $.props.userConfig().copy(id = Some(newId))
+            <.span("authenticated as ", <.a($.props.ctl.setOnClick(Component.uri(newId)))(id))
           }.getOrElse(<.span("could not authenticate"))
         }
         case HttpError(_,code, _, _) => <.span("Could not authenticate. Returned with " + code)

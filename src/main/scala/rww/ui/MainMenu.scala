@@ -3,7 +3,7 @@ package rww.ui
 
 import java.net.{URI => jURI}
 
-import japgolly.scalajs.react.extra.router2._
+import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import japgolly.scalajs.react.{ReactNode, _}
 import rx._
@@ -26,8 +26,8 @@ object MainMenu {
   }
 
   private val MainMenu = ReactComponentB[Props]("MainMenu")
-    .initialStateP(p=>p.pages)
-    .render((P, S) => {
+    .initialState_P(p=>p.pages)
+    .renderPS(($,P, S) => {
     <.ul(bss.navbar)(
     // build a list of menu items
     for (item <- menuItems) yield {

@@ -12,7 +12,6 @@ import spatutorial.client.components.GlobalStyles
 
 import scala.util.Try
 import scalacss.ScalaCssReact._
-import scalaz.effect.IO
 
 
 /**
@@ -28,13 +27,13 @@ object URLBoxComponent {
 
 
   def handleSubmit( props: WProps[String], state: State)(e: ReactEventI) =
-    e.preventDefaultIO.flatMap(_=>state.url.map(u=> props.ctl.set(Component(u))).getOrElse(IO()))
+    e.preventDefaultCB.flatMap(_=>state.url.map(u=> props.ctl.set(Component(u))).getOrElse(Callback()))
 
   private val UrlBox = ReactComponentB[WProps[String]]("MainMenu")
-    .initialStateP(p => State(p.about))
-    .renderS(($, P, S) =>
-    <.form(^.onSubmit ~~> handleSubmit(P,S)_)(
-      <.input(^.`type` := "text", ^.onChange ~~> $._runState(onChange), bss.formControl,
+    .initialState_P(p => State(p.about))
+    .renderPS(($, P, S) =>
+    <.form(^.onSubmit ==> handleSubmit(P,S)_)(
+      <.input(^.`type` := "text", ^.onChange ==> $._runState(onChange), bss.formControl,
         ^.placeholder := "Enter/Paste URL to object", ^.value := S.urlStr),
       <.span(bss.alert(CommonStyle.warning), bss.pullRight,
         (S.url.isSuccess) ?= ^.visibility.hidden)(S.url.failed.map(_.getMessage ).toOption), <.br(),

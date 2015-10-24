@@ -6,7 +6,7 @@ import japgolly.scalajs.react.extra.router2.RouterCtl
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.w3.banana.PointedGraph
 import rww.ontology._
-import rww.store.WebActor$
+import rww.store.WebAgent
 import rww.ui.RwwPages
 import rx.Var
 import rww.Rdf
@@ -43,13 +43,13 @@ object Profile {
   val profile = ReactComponentB[WProps[Person]]("Profile")
     .initialState(State())
     .backend(new ProfileBackend(_))
-    .render((P, S, B) => {
+    .renderPS(($, P, S) => {
     val newProps: WProps[Person] = P.copy(edit=S.edit)
     // import shapeless.singleton.syntax._ <- use this when using styleC
     <.div(style.clearfix,style.center,style.body)(
-      <.div(style.editProfile, ^.onClick==> B.handleSubmit)(
+      <.div(style.editProfile, ^.onClick==> $.backend.handleSubmit)(
         S.text,
-        if (S.edit) <.a(^.onClick==>B.handleCancel)("cancel") else EmptyTag
+        if (S.edit) <.a(^.onClick==>$.backend.handleCancel)("cancel") else EmptyTag
       ),
       <.div()(
         Image(newProps.copy(about=P.about.depiction.headOption)),
@@ -72,7 +72,7 @@ object WebIDInfo {
 
   val component = ReactComponentB[WProps[Person]]("Profile")
     .stateless
-    .render((P, _) =>
+    .renderP(($,P) =>
     P.about.npg.pg.pointer match {
       case URI(url) =>
         <.div(style.clearfix, style.webidbar)(

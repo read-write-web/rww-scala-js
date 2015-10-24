@@ -55,7 +55,7 @@
 //        -- foaf.depiction ->- URI("http://farm1.static.flickr.com/164/373663745_e2066a4950.jpg")
 //        -- foaf.depiction ->- URI("http://bblfish.net/pix/bfish.large.jpg")
 //      ).graph
-//    React.render(Profile(Props(Named(bblDocUri,Person(PointedGraph[Rdf](bbl, graph))))), el)
+//    ReactDOM.render(Profile(Props(Named(bblDocUri,Person(PointedGraph[Rdf](bbl, graph))))), el)
 //  }
 //
 //  //parse graph from string then show picture
@@ -83,7 +83,7 @@
 //    //      _ <- appendToGraph(rww.rdf.jsstore, bblDocUri, g) //add to store
 //    //      graph <- getGraph(rww.rdf.jsstore,bblDocUri ) //get from store
 //    } yield {
-//        React.render(Profile(Props(Named(bblDocUri,Person(PointedGraph[Rdf](bbl, g))))), el)
+//        ReactDOM.render(Profile(Props(Named(bblDocUri,Person(PointedGraph[Rdf](bbl, g))))), el)
 //      }
 //    f.get
 //  }
@@ -98,14 +98,14 @@
 //
 //    ws.fetch(bbl).map(npg => {
 //
-//      React.render(Profile(Props(npg.map(Person(_)))), el)
+//      ReactDOM.render(Profile(Props(npg.map(Person(_)))), el)
 //    }).onComplete(x => dom.console.log(x.asInstanceOf[js.Any]))
 //  }
 //
 //  def example4() = {
 //    ws.fetch(URI("http://bblfish.net/people/fake/me")).map(npg => {
 //
-//      React.render(Profile(Props(npg.map(Person(_)))), el)
+//      ReactDOM.render(Profile(Props(npg.map(Person(_)))), el)
 //    }).onComplete(x => dom.console.log(x.asInstanceOf[js.Any]))
 //  }
 //
@@ -114,7 +114,7 @@
 //  //      i <- rdfstoreOps.loadRemote(jsstore, bblDocUri)
 //  //      g <- JSStore.store.getGraph(JSStore.jsstore, bblDocUri)
 //  //    } yield {
-//  //      React.render(component(PointedGraph[Rdf](bbl, g)), el)
+//  //      ReactDOM.render(component(PointedGraph[Rdf](bbl, g)), el)
 //  //    }
 //
 //}

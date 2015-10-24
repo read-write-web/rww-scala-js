@@ -14,8 +14,8 @@ object RWwScalaJS extends Build {
 
   lazy val commonSettings: PE = _.settings(
     organization := "net.bblfish",
-    scalaVersion := "2.11.6",
-    version := "0.3",
+    scalaVersion := "2.11.7",
+    version := "0.3.1",
     description := "Read/Write SoLiD User Interface in Scala-JS",
     licenses := Seq("Apache License, Version 2.0" -> url("http://opensource.org/licenses/Apache-2.0")),
     homepage := Some(url("https://github.com/read-write-web/rww-scala-js")),
@@ -48,15 +48,18 @@ object RWwScalaJS extends Build {
     .enablePlugins(ScalaJSPlugin)
     .settings(
       name := "rww-scala-js",
-      jsDependencies += "org.webjars" % "react" % "0.12.2" / "react-with-addons.js" commonJSName "React",
+      jsDependencies ++= Seq(
+        "org.webjars.npm" % "react"     % "0.14.0" / "react-with-addons.js" commonJSName "React"    minified "react-with-addons.min.js",
+        "org.webjars.npm" % "react-dom" % "0.14.0" / "react-dom.js"         commonJSName "ReactDOM" minified "react-dom.min.js" dependsOn "react-with-addons.js"
+      ),
       libraryDependencies ++= Seq(
         "org.scala-js" %%% "scalajs-dom" % "0.8.1",
-        "com.github.japgolly.scalajs-react" %%% "core" % "0.9.1",
-        "com.github.japgolly.scalajs-react" %%% "test" % "0.9.1" % "test",
-        "com.github.japgolly.scalajs-react" %%% "extra" % "0.9.1",
-        "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.9.1",
-        "com.github.japgolly.scalacss" %%% "core" % "0.3.0",
-        "com.github.japgolly.scalacss" %%% "ext-react" % "0.3.0",
+        "com.github.japgolly.scalajs-react" %%% "core" % "0.10.0",
+//      "com.github.japgolly.scalajs-react" %%% "test" % "0.9.0" % "test",
+        "com.github.japgolly.scalajs-react" %%% "extra" % "0.10.0",
+        "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.10.0",
+        "com.github.japgolly.scalacss" %%% "core" % "0.3.1",
+        "com.github.japgolly.scalacss" %%% "ext-react" % "0.3.1",
         "com.lihaoyi" %%% "scalarx" % "0.2.8",
         "com.lihaoyi" %%% "utest" % "0.3.1",
         "org.webjars" % "font-awesome" % "4.3.0-1" % Provided,

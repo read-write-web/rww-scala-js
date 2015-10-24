@@ -1,10 +1,11 @@
 package rww.ui.foaf
 
 import japgolly.scalajs.react.ReactComponentB
-import rww.ontology.{ContactLocation, Person}
 import japgolly.scalajs.react.vdom.prefix_<^._
-import scalacss.ScalaCssReact._
+import rww.ontology.ContactLocation
 import rww.ui.foaf.{FoafStyles => style}
+
+import scalacss.ScalaCssReact._
 
 /**
  * Created by hjs on 17/05/2015.
@@ -12,7 +13,7 @@ import rww.ui.foaf.{FoafStyles => style}
 object ContactLocationInfo {
   val ContactLocationInfo = ReactComponentB[WProps[(String,ContactLocation)]]("ContactLocationInfo")
     .initialState(None)
-    .render((P,S,B)=> {
+    .renderP(($,P)=> {
     val (homeTp,cl) = P.about
     <.li()(
       <.span(style.clearfix,style.span3)(

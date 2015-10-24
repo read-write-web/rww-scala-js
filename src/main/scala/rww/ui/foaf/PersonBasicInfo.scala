@@ -10,7 +10,6 @@ import rww.rdf.Named
 import rww.ui.foaf.{FoafStyles => style}
 import rww.ui.rdf.NPGPath
 
-import scala.util.{Success, Try}
 import scalacss.ScalaCssReact._
 
 /**
@@ -22,7 +21,7 @@ object PersonBasicInfo {
 
     val PersonBasicInfo = ReactComponentB[WProps[Person]]("PersonBasicInfo")
       .initialState(None)
-      .render((P,S,B)=>{
+      .renderP(($,P)=>{
         val person = P.about
         <.div(style.basic)(
           //todo: what should one do with multiple fields?
