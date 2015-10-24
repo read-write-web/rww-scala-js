@@ -2,7 +2,7 @@ package rww.ui
 
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.prefix_<^._
-import japgolly.scalajs.react.{BackendScope, Callback, ReactComponentB, ReactElement}
+import japgolly.scalajs.react.{BackendScope, ReactComponentB, ReactElement}
 import org.w3.banana.PointedGraph
 import rww.ontology.Person
 import rww.rdf.Named
@@ -48,12 +48,12 @@ object PNGWindow {
       }
       r.getOrElse(<.div("huh?"))
     })
-    .componentWillReceiveProps( f => Callback {
-      f.$.backend.unmount
+    .componentWillReceiveProps( f =>
+      f.$.backend.unmount >>
       f.$.backend.mounting(f.nextProps)
-    })
+    )
     .componentWillMount(f => {
-      Callback(f.backend.mounting(f.props))
+      f.backend.mounting(f.props)
     })
     .configure(OnUnmount.install)
     .build
