@@ -14,7 +14,7 @@ object AddressInfo {
   import rww._
   val AddressInfo = ReactComponentB[WProps[Address]]("AddressInfo")
     .initialState(None)
-    .render((P,S,B)=> {
+    .renderP(($,P)=> {
     val a = P.about
     <.div(style.content){
       val c = a.street.toLitStr.toList:::

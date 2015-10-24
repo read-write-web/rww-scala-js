@@ -37,18 +37,18 @@ object EditableTextField {
   val component = ReactComponentB[Props]("EditableTextBox")
     .initialState(State())
     .backend(new NameBackend(_))
-    .render((P, S, B) => {
+    .renderPS(($, P, S) => {
       val nameNpg = P.text
       val nameOpt: Option[String] = nameNpg.target.obj.pointer match {
         case Literal(name, _, _) => Some(name)
         case _ => None
       }
      if (!P.editMode || (S.edit.isEmpty && nameOpt.isDefined))
-      <.div(P.style, ^.title := "name", ^.onClick ==> B.enterEdit) (nameOpt)
-     else <.form( ^.onSubmit ==> B.handleSubmit )(
+      <.div(P.style, ^.title := "name", ^.onClick ==> $.backend.enterEdit) (nameOpt)
+     else <.form( ^.onSubmit ==> $.backend.handleSubmit )(
       <.input(P.style, ^.tpe := "text", ^.placeholder := P.placeholder,
         ^.value := S.edit,
-        ^.onChange ==> B.onChange
+        ^.onChange ==> $.backend.onChange
       )
     )
   }).build
@@ -58,25 +58,32 @@ object EditableTextField {
   class NameBackend($: BackendScope[Props, State]) {
     def handleSubmit(e: ReactEventI) = {
       e.preventDefault()
-      $.state.edit.map { newName =>
-        $.props.text.path.headOption.map{ arc =>
-          val removeTriple = arc.arrow.rel
-          val newTriple = Triple(removeTriple.subject, removeTriple.predicate, Literal(newName))
-          $.props.webAgent.vsimplePatch($.props.text.target.name, newTriple, removeTriple)
-//          map { _ =>
+      val x =for {
+        etfState <- $.state
+        etfProps <- $.props
+      } yield {
+        etfState.edit.map{ newName =>
+          etfProps.text.path.headOption.map { arc =>
+            val removeTriple = arc.arrow.rel
+            val newTriple = Triple(removeTriple.subject, removeTriple.predicate, Literal(newName))
+            etfProps.webAgent.vsimplePatch(etfProps.text.target.name, newTriple, removeTriple)
+            //          map { _ =>
             //vsimplePatch should return an  rx.Var
-//            $.setState(State())
-//          }
+            //            $.setState(State())
+            //          }
+          }
         } getOrElse {
           println("warning: path did not have an origin")
         }
-        // send a message to x in order to update the graph.
-        // we need a named graph so we know where we can send the update
       }
+      x.void
+      // send a message to x in order to update the graph.
+      // we need a named graph so we know where we can send the update
+
     }
 
     def enterEdit(e: ReactEvent) = {
-      if ($.props.editMode) $.setState(State(Some("")))
+      $.props.map(editMode => $.setState(State(Some("")))).void
     }
     def onChange(e: ReactEventI) =
       $.modState(s => State(Some(e.target.value)))

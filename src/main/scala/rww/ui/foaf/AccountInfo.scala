@@ -14,7 +14,7 @@ import scalacss.ScalaCssReact._
 object AccountInfo {
   val AccountInfo = ReactComponentB[WProps[OnlineAccount]]("AccountInfo")
     .initialState(None)
-    .render((P,S,B)=> {
+    .renderP(($,P)=> {
     import rww.Rdf.ops._
     import rww._
     val act = P.about

@@ -1,6 +1,6 @@
 package rww.ui.foaf
 
-import japgolly.scalajs.react.extra.router2.RouterCtl
+import japgolly.scalajs.react.extra.router.RouterCtl
 import rww._
 import rww.store.WebAgent
 import rww.ui.RwwPages

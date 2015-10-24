@@ -1,13 +1,11 @@
 package rww.ui
 
+import java.net.{URI => jURI}
+
 import japgolly.scalajs.react.ReactComponentB
 import japgolly.scalajs.react.vdom.prefix_<^._
-
-import java.net.{URI=>jURI}
 import rww.ui.foaf.WProps
-import rww.ui.{URLBoxComponent=>UBox}
-
-import scalaz.effect.IO
+import rww.ui.{URLBoxComponent => UBox}
 
 /**
  * Created by hjs on 13/05/2015.
@@ -15,7 +13,7 @@ import scalaz.effect.IO
 object Dashboard {
   //todo: why is it important that this pass the Router?
   val component = ReactComponentB[WProps[(String,List[jURI])]]("Dashboard")
-    .render((P) => {
+    .renderP(($,P) => {
     // create dummy data for the chart
     <.div(
       // header, MessageOfTheDay and chart components
