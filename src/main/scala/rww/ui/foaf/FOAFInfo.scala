@@ -44,7 +44,7 @@ object MiniPersonInfo {
 
   class Backend(t: BackendScope[WProps[Person], Option[JumpTyp]])
     extends RxStateObserver[\/[RequestState,NPGPath]](t)  {
-    def mounting(p: WProps[Person]): Unit = observeAndSetState(p.about.npg.jump(p.webAgent))
+    def mounting(p: WProps[Person]) = observeAndSetState(p.about.npg.jump(p.webAgent))
   }
 
 
@@ -65,11 +65,11 @@ object MiniPersonInfo {
       WebIDBar(P.copy(about=(P.about.npg.pg.pointer,S.flatMap(_.swap.toOption))))
     )
   })
-    .componentWillMount(f => Callback(f.backend.mounting(f.props)))
-    .componentWillReceiveProps(f => Callback {
-      f.$.backend.unmount
-      f.$.backend.mounting(f.nextProps)
-    })
+    .componentWillReceiveProps(f =>
+      f.$.backend.unmount >>
+        f.$.backend.mounting(f.nextProps)
+    )
+    .componentWillMount(f => f.backend.mounting(f.props))
     .configure(OnUnmount.install)
     .build
 
