@@ -18,8 +18,7 @@ abstract class RxStateObserver[S](scope: BackendScope[_, Option[S]])
     for {
       obs <- CallbackOption.liftOption {
         rxo.map(rx =>
-          //elacin@github points out that `runNow` indicates library code
-          //"what you really have here is a tiny bit of integration code between rx and scalajs-react"
+          //thanks to elacin@github for help
           rx.foreach(v => scope.setState(Some(v)).runNow(), true))
       }
        _ <- onUnmount { Callback ( obs.kill() ) }

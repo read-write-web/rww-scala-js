@@ -52,9 +52,7 @@ object PNGWindow {
       f.$.backend.unmount >>
       f.$.backend.mounting(f.nextProps)
     )
-    .componentWillMount(f => {
-      f.backend.mounting(f.props)
-    })
+    .componentWillMount(f => f.backend.mounting(f.props))
     .configure(OnUnmount.install)
     .build
 
