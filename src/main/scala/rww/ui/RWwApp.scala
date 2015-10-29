@@ -8,16 +8,20 @@ import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs
 import org.scalajs.dom
+import org.scalajs.dom.raw.ServiceWorkerRegistration
 import rww._
-import rww.store.{WebUIDB, WebActor, WebActor$}
-import rww.ui.foaf.{UserConfig, WProps, FoafStyles}
+import rww.auth.ServiceWorkerFailed
+import rww.store.WebUIDB
+import rww.ui.foaf.{FoafStyles, UserConfig, WProps}
 import rx.core.Var
 import spatutorial.client.components.GlobalStyles
 
 import scala.collection.immutable.ListSet
+import scala.concurrent.{Promise => SPromise, Future}
 import scala.scalajs.js
 import scala.scalajs.js.URIUtils._
 import scala.scalajs.js.annotation.{JSExport, JSExportNamed}
+import scala.scalajs.js.{Date, JSON}
 import scala.util.Try
 import scalacss.Defaults._
 import scalacss.ScalaCssReact._
@@ -61,6 +65,27 @@ object RWwApp {
 
     new RWwApp(dashboardUri.getOrElse(""), proxy.toOption, authEndpoints.toList).run()
   }
+
+  val AuthServiceWorker: Future[ServiceWorkerRegistration] = {
+    val result = SPromise[ServiceWorkerRegistration]()
+    if (!js.isUndefined(dom.navigator.serviceWorker)) {
+      // check if serviceWorker supported or not
+      dom.navigator.serviceWorker.register("js/ServiceWorker.js").andThen((resp: ServiceWorkerRegistration) => {
+        println(s" ServiceWorker registered ${new Date()} successfully : ${JSON.stringify(resp)}  ")
+        result.success(resp)
+      },
+        (err: Any) => {
+          println(s"service worker failed ${err}")
+          result.failure(ServiceWorkerFailed(err.toString))
+        }
+      )
+    } else {
+      println("ServiceWorker not available in browser yet")
+      result.failure(ServiceWorkerFailed("ServiceWorker not available in browser yet"))
+
+    }
+    result.future
+  }
 }
 
 
@@ -68,7 +93,6 @@ object RWwApp {
 class RWwApp( startURI: String,
               proxyService: Option[String],
               authEndpoints: List[jURI]) {
-  import rww.Rdf.ops._
 
   val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
   val origin = new jURI(scalajs.dom.window.location.origin)
