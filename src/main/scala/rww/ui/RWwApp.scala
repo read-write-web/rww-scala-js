@@ -17,7 +17,7 @@ import rx.core.Var
 import spatutorial.client.components.GlobalStyles
 
 import scala.collection.immutable.ListSet
-import scala.concurrent.{Promise => SPromise, Future}
+import scala.concurrent.{Future, Promise => SPromise}
 import scala.scalajs.js
 import scala.scalajs.js.URIUtils._
 import scala.scalajs.js.annotation.{JSExport, JSExportNamed}
@@ -68,17 +68,20 @@ object RWwApp {
 
   val AuthServiceWorker: Future[ServiceWorkerRegistration] = {
     val result = SPromise[ServiceWorkerRegistration]()
+    import js.Dynamic.literal
     if (!js.isUndefined(dom.navigator.serviceWorker)) {
       // check if serviceWorker supported or not
-      dom.navigator.serviceWorker.register("js/ServiceWorker.js").andThen((resp: ServiceWorkerRegistration) => {
-        println(s" ServiceWorker registered ${new Date()} successfully : ${JSON.stringify(resp)}  ")
-        result.success(resp)
-      },
-        (err: Any) => {
-          println(s"service worker failed ${err}")
-          result.failure(ServiceWorkerFailed(err.toString))
-        }
-      )
+      dom.navigator.serviceWorker
+        .register("ServiceWorker.js", literal(scope = "."))
+        .andThen((resp: ServiceWorkerRegistration) => {
+          println(s" ServiceWorker registered ${new Date()} successfully : ${JSON.stringify(resp)}  ")
+          result.success(resp)
+        },
+          (err: Any) => {
+            println(s"service worker failed ${err}")
+            result.failure(ServiceWorkerFailed(err.toString))
+          }
+        )
     } else {
       println("ServiceWorker not available in browser yet")
       result.failure(ServiceWorkerFailed("ServiceWorker not available in browser yet"))

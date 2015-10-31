@@ -3,8 +3,10 @@
   <head>
     <meta charset="UTF-8">
     <title>scalajs-react</title>
-    <script type="text/javascript" src="../target/scala-2.11/rww-scala-js-jsdeps.js"></script>
-    <script type="text/javascript" src="../target/scala-2.11/rww-scala-js-fastopt.js"></script>
+    <!-- we need to place the JS lower than the html so that we can
+        get ServiceWorkers to access requrests -->
+    <script type="text/javascript" src="rww-scala-js-jsdeps.js"></script>
+    <script type="text/javascript" src="rww-scala-js-fastopt.js"></script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
