@@ -3,6 +3,9 @@ package rww.auth
 import org.scalajs.dom.experimental.FetchEvent
 import org.scalajs.dom.raw.{Event, ServiceWorker}
 
+import scala.scalajs.js
+import scala.scalajs.js.collection.JSIterator
+import scala.scalajs.js.|
 import scala.scalajs.js.Dynamic.{global => g}
 import scala.scalajs.js.annotation.JSExport
 import scala.util.control.NonFatal
@@ -22,30 +25,31 @@ object ServiceWorkerAuth {
   }
 
   def install(e: Event) = {
-    println("~~~!!> received event = "+e)
-    g.console.log(g.Symbol.iterator)
+    log("~~~!!> received event = ",e)
+    log("Symbol.iterator",JSIterator.iteratorSymbol)
   }
 
   def fetch(e: FetchEvent) = {
-    import scala.scalajs.js.collection.Iterator._
+    import scala.scalajs.js.collection.JSIterator._
     try {
-      println("~~~!!> received fetch event")
-      println{"~~~~!!> content-type=" +
-        e.request.headers.get("Content-Type").getOrElse(" <-- empty") }
+      log("~> received fetch event. Request is:",e.request)
+      log("~> headers:",e.request.headers)
+      log("~> content-type=" ,e.request.headers.get("Accept") )
 
-      g.console.log(e.request.headers)
-      println("~~~~!!> all headers =" + e.request.headers.iterator())
+      log("~>all headers =" ,e.request.headers.iterator())
 //      println("~~~~> all headers =" + e.request.headers.iterator().toList)
     }catch {
       case scala.scalajs.js.JavaScriptException(e: scala.scalajs.js.Object) => {
-        println("!!next the stack trace of the error itself")
-        g.console.log(e)
+        log("~>next the stack trace of the error itself",e)
       }
-      case NonFatal(e) => {println("error "+e)}
+      case NonFatal(e) => log("~>error ",e.toString)
     }
 
   }
 
+  def log(msg: String,err: js.Any): Unit = {
+    g.console.log(msg,err)
+  }
 }
 
 

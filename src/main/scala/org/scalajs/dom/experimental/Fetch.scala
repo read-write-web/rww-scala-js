@@ -125,7 +125,7 @@ class ResponseInit(val status: Int, val statusText: String, val headers: Headers
   */
 @js.native
 class Headers(map: js.Dictionary[String] | Array[Array[String]] | Headers = Dictionary[String]())
-  extends collection.Iterable[js.Array[String]] {
+  extends collection.JSIterable[js.Array[String]] {
 
   /**
     * The append() method of the Headers interface appends a new value onto an existing header inside a Headers
