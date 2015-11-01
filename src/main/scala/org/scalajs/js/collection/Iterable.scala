@@ -52,14 +52,5 @@ object Iterator {
 
 }
 
-@js.native
-class Symbol {
-
-}
-
-
-
-
-
 
 
