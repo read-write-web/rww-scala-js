@@ -1,8 +1,8 @@
 package scala.scalajs.js.collection
 
 import scala.scalajs.js
-import scala.scalajs.js.annotation.{JSBracketAccess, JSFullName}
 import scala.scalajs.js.Dynamic.{global => g}
+import scala.scalajs.js.annotation.JSBracketAccess
 
 
 /**
@@ -14,7 +14,7 @@ import scala.scalajs.js.Dynamic.{global => g}
 
 trait Iterable[+A] extends js.Object {
   @JSBracketAccess
-  def function[R](symbol: AnyRef): js.Function0[R] = js.native
+  def method[R](symbol: js.Any): js.Function0[R] = js.native
 }
 
 @js.native
@@ -23,7 +23,7 @@ trait Iterator[+A] extends js.Object {
 }
 
 object Iterator {
-
+  val iteratorSymbol = g.Symbol.iterator
   @js.native
   trait Entry[+A] extends js.Object {
     val done: Boolean = js.native
@@ -32,17 +32,21 @@ object Iterator {
 
   implicit def toJSIterator[A](it: Iterator[A]): scala.collection.Iterator[A] =
     new scala.collection.Iterator[A]() {
-      var nextEntry = it.next()
+      var nextEntry: Entry[A] = it.next()
 
       def hasNext: Boolean = ! nextEntry.done
       def next(): A = {
+        val result = nextEntry.value
         nextEntry = it.next()
-        nextEntry.value
+        result
       }
     }
 
   implicit class IterableW[+A](it: Iterable[A]) {
-    def iterator(): Iterator[A] = it.function[Iterator[A]](g.Symbol.iterator)()
+    def iterator(): Iterator[A] = {
+      val fIt: Function0[Iterator[A]] = it.method[Iterator[A]](iteratorSymbol)
+      fIt()
+    }
   }
 
 

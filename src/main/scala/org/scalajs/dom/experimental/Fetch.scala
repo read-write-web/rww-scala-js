@@ -6,32 +6,31 @@ import org.scalajs.dom.{Blob, Event}
 
 import scala.scalajs.js
 import scala.scalajs.js.|
-import scala.scalajs.js.collection
 import scala.scalajs.js.typedarray.ArrayBuffer
-import scala.scalajs.js.{Dictionary, UndefOr}
+import scala.scalajs.js.{Dictionary, UndefOr, collection}
 
 /**
- * The Request interface of the Fetch API represents a resource request.
- *
- * MDN
- * see https://fetch.spec.whatwg.org/#request-class
- */
+  * The Request interface of the Fetch API represents a resource request.
+  *
+  * MDN
+  * see https://fetch.spec.whatwg.org/#request-class
+  */
 @js.native
 class Request(input: String | Request, init: RequestInit = null) extends js.Object {
 
   /**
-   * Contains the request's method (GET, POST, etc.)
-   */
+    * Contains the request's method (GET, POST, etc.)
+    */
   def method: HttpMethod = js.native
 
   /**
-   * Contains the URL of the request.
-   */
+    * Contains the URL of the request.
+    */
   def url: String = js.native //should be USVString
 
   /**
-   * Contains the associated Headers object of the request.
-   */
+    * Contains the associated Headers object of the request.
+    */
   def headers: Headers = js.native
 
   def destination: RequestDestination = js.native
@@ -76,13 +75,13 @@ class Response(content: Blob | BufferSource | FormData | String = null, init: Re
 }
 
 /**
- * https://fetch.spec.whatwg.org/#body
- *
- * bblfish: not clear from the definition if this is a number of traits that may be implemented
- * by the Response or not
- */
+  * https://fetch.spec.whatwg.org/#body
+  *
+  * bblfish: not clear from the definition if this is a number of traits that may be implemented
+  * by the Response or not
+  */
 @js.native
-trait Body extends js.Object{
+trait Body extends js.Object {
 
   def bodyUsed: Boolean = js.native
 
@@ -125,51 +124,52 @@ class ResponseInit(val status: Int, val statusText: String, val headers: Headers
   * Headers object using the Headers.Headers() constructor.
   */
 @js.native
-class Headers(map: js.Dictionary[String] = Dictionary[String]())
+class Headers(map: js.Dictionary[String] | Array[Array[String]] | Headers = Dictionary[String]())
   extends collection.Iterable[js.Array[String]] {
 
   /**
-   * The append() method of the Headers interface appends a new value onto an existing header inside a Headers
-   * object, or adds the header if it does not already exist.
-   *
-   * The difference between Headers.set and append() is that if the specified header already exists and accepts
-   * multiple values, Headers.set will overwrite the existing value with the new one, whereas append() will append
-   * the new value onto the end of the set of values.
-   */
+    * The append() method of the Headers interface appends a new value onto an existing header inside a Headers
+    * object, or adds the header if it does not already exist.
+    *
+    * The difference between Headers.set and append() is that if the specified header already exists and accepts
+    * multiple values, Headers.set will overwrite the existing value with the new one, whereas append() will append
+    * the new value onto the end of the set of values.
+    */
   def append(name: String, value: String): Unit = js.native
 
 
   /**
-   * The set() method of the Headers interface sets a new value for an existing header inside a Headers object, or
-   * adds the header if it does not already exist.
-   *
-   * The difference between set() and Headers.append is that if the specified header already exists and accepts
-   * multiple values, set() overwrites the existing value with the new one, whereas Headers.append appends the new
-   * value to the end of the set of values.
-   */
+    * The set() method of the Headers interface sets a new value for an existing header inside a Headers object, or
+    * adds the header if it does not already exist.
+    *
+    * The difference between set() and Headers.append is that if the specified header already exists and accepts
+    * multiple values, set() overwrites the existing value with the new one, whereas Headers.append appends the new
+    * value to the end of the set of values.
+    */
   def set(name: String, value: String): Unit = js.native
 
   /**
-   * The delete() method of the Headers interface deletes a header from the current Headers object.
-   */
+    * The delete() method of the Headers interface deletes a header from the current Headers object.
+    */
   def delete(name: String): Unit = js.native
 
   /**
-   * The get() method of the Headers interface returns the first value of a given header from within a Headers object
-   * . If the requested header doesn't exist in the Headers object, the call returns null.
-   */
+    * The get() method of the Headers interface returns the first value of a given header from within a Headers object
+    * . If the requested header doesn't exist in the Headers object, the call returns null.
+    */
   def get(name: String): UndefOr[String] = js.native
 
   /**
-   * The getAll() method of the Headers interface returns an array of all the values of a header within a Headers
-   * object with a given name. If the requested header doesn't exist in the Headers object, it returns an empty array.
-   */
+    * The getAll() method of the Headers interface returns an array of all the values of a header within a Headers
+    * object with a given name. If the requested header doesn't exist in the Headers object, it returns an empty array.
+    *
+    */
   def getAll(name: String): js.Array[String] = js.native
 
   /**
-   * The has() method of the Headers interface returns a boolean stating whether a Headers object contains a certain
-   * header.
-   */
+    * The has() method of the Headers interface returns a boolean stating whether a Headers object contains a certain
+    * header.
+    */
   def has(name: String): Boolean = js.native
 
 
@@ -179,9 +179,10 @@ class Headers(map: js.Dictionary[String] = Dictionary[String]())
 class FetchEvent extends Event {
   /**
     * @return Boolean that is true if the event was dispatched with the user's intention for the page to reload,
-    * and false otherwise. Typically, pressing the refresh button in a browser is a reload, while clicking a link and
-    * pressing the back button is not.
-    * */
+    *         and false otherwise. Typically, pressing the refresh button in a browser is a reload, while clicking a
+    *         link and
+    *         pressing the back button is not.
+    **/
   def isReload: Boolean = js.native
 
   /**
@@ -310,15 +311,15 @@ object FrameType {
   /**
     * The window client's global object's browsing context is an auxiliary browsing context.
     */
-  val auxiliary =  "auxiliary".asInstanceOf[FrameType]
+  val auxiliary = "auxiliary".asInstanceOf[FrameType]
 
-  /**   The window client's global object's browsing context is a top-level browsing context. */
-  val `top-level` =   "top-level".asInstanceOf[FrameType]
+  /** The window client's global object's browsing context is a top-level browsing context. */
+  val `top-level` = "top-level".asInstanceOf[FrameType]
 
-  /**   The window client's global object's browsing context is a nested browsing context. */
-  val nested =  "nested".asInstanceOf[FrameType]
+  /** The window client's global object's browsing context is a nested browsing context. */
+  val nested = "nested".asInstanceOf[FrameType]
 
-  val none =  "none".asInstanceOf[FrameType]
+  val none = "none".asInstanceOf[FrameType]
 }
 
 /**
