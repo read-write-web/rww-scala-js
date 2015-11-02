@@ -1,10 +1,11 @@
 package org.scalajs.dom.experimental
 
 import org.scalajs.dom.crypto.BufferSource
-import org.scalajs.dom.raw.{FormData, MessagePort, Promise}
+import org.scalajs.dom.raw.{Promise, FormData, MessagePort}
 import org.scalajs.dom.{Blob, Event}
 
 import scala.scalajs.js
+import scala.scalajs.js.annotation.JSName
 import scala.scalajs.js.|
 import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.scalajs.js.{Dictionary, UndefOr, collection}
@@ -194,8 +195,10 @@ class FetchEvent extends Event {
     *
     * @return
     */
-  def client: Client = js.native
+  def respondWith(promisedResponse: Promise[Response]): Unit = js.native
 }
+
+
 
 @js.native
 class RequestInit(
