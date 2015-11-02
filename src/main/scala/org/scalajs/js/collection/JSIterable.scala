@@ -30,7 +30,7 @@ object JSIterator {
     val value: A = js.native
   }
 
-  implicit def toIterator[A](it: JSIterator[A]): scala.collection.Iterator[A] =
+  def toIterator[A](it: JSIterator[A]): scala.collection.Iterator[A] =
     new scala.collection.Iterator[A]() {
       var nextEntry: Entry[A] = it.next()
 
@@ -43,11 +43,9 @@ object JSIterator {
     }
 
   implicit class IterableW[+A](it: JSIterable[A]) {
-    def iterator(): JSIterator[A] = {
-      g.console.log("~>it=",it)
-      val fit = it.method[JSIterator[A]](iteratorSymbol)
-      g.console.log("~>fit=",fit)
-      fit
+    def iterator(): Iterator[A] = {
+      val jsIt = it.method[JSIterator[A]](iteratorSymbol)
+      toIterator(jsIt)
     }
   }
 
