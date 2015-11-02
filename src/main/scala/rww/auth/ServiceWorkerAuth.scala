@@ -47,7 +47,7 @@ object ServiceWorkerAuth {
       log("~> headers:", e.request.headers)
       log("~> content-type=", e.request.headers.get("Accept"))
 
-      log("~>all headers =", JSIterator.toIterator(e.request.headers.iterator()).toList)
+      println("~>all headers ="+ JSIterator.toIterator[js.Array[String]](e.request.headers.iterator()).toList)
       e.respondWith {
         //see issue https://github.com/scala-js/scala-js-dom/issues/164
         val p: Promise[Any] = fetch(e.request.url).andThen({ response: Response =>
