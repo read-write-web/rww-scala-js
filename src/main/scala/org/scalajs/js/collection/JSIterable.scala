@@ -45,7 +45,9 @@ object JSIterator {
   implicit class IterableW[+A](it: JSIterable[A]) {
     def iterator(): JSIterator[A] = {
       g.console.log("~>it=",it)
-      it.method[JSIterator[A]](iteratorSymbol)
+      val fit = it.method[JSIterator[A]](iteratorSymbol)
+      g.console.log("~>fit=",fit)
+      fit
     }
   }
 
