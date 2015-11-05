@@ -12,7 +12,7 @@ import org.w3.banana.io._
 import rww.Rdf
 import rx.{Rx, Var}
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{Future, Promise}
 import scala.util.Try
 
 sealed trait RequestState {
@@ -121,7 +121,6 @@ class WebUIDB(
   def fetch(url: Rdf#URI, mode: CacheMode = UnlessCached, counter: Int = 1): Rx[RequestState] = {
     // for AJAX calls http://lihaoyi.github.io/hands-on-scala-js/#dom.extensions
     //and for CORS see http://www.html5rocks.com/en/tutorials/cors/
-    println(s"fetching $url")
     val base = url.fragmentLess
     val valueRx = cache(base)
     valueRx() match {

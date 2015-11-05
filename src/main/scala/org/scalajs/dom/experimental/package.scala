@@ -18,5 +18,5 @@ object experimental extends js.GlobalScope {
     * @param init
     * @return
     */
-  def fetch(info: String | Request, init: RequestInit=null): Promise[Response] = js.native
+  def fetch(info: String | Request, init: RequestInit|js.Dictionary[js.Any]|js.Object with Dynamic=null): Promise[Response] = js.native
 }

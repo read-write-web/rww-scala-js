@@ -2,11 +2,10 @@ package rww.auth
 
 import org.scalajs.dom.experimental.{FetchEvent, _}
 import org.scalajs.dom.raw.{Event, Promise, ServiceWorker}
+import rww.log
 
-import scala.scalajs.js
 import scala.scalajs.js.Dynamic.{global => g}
 import scala.scalajs.js.annotation.JSExport
-import scala.scalajs.js.collection.JSIterator
 import scala.util.control.NonFatal
 
 /**
@@ -25,7 +24,6 @@ object ServiceWorkerAuth {
 
   def installListener(e: Event) = {
     log("~~~!!> received event = ",e)
-    log("Symbol.iterator",JSIterator.iteratorSymbol)
   }
 
   def isSignature(ah: String): Boolean = ah.toLowerCase.startsWith("signature")
@@ -41,13 +39,7 @@ object ServiceWorkerAuth {
   }
 
   def fetchListener(e: FetchEvent) = {
-    import scala.scalajs.js.collection.JSIterator._
     try {
-      log("~> received fetch event. Request is:", e.request)
-      log("~> headers:", e.request.headers)
-      log("~> content-type=", e.request.headers.get("Accept"))
-
-      println("~>all headers ="+ JSIterator.toIterator[js.Array[String]](e.request.headers.iterator()).toList)
       e.respondWith {
         //see issue https://github.com/scala-js/scala-js-dom/issues/164
         val p: Promise[Any] = fetch(e.request.url).andThen({ response: Response =>
@@ -77,9 +69,7 @@ object ServiceWorkerAuth {
 
   }
 
-  def log(msg: String,err: js.Any): Unit = {
-    g.console.log(msg,err)
-  }
+
 }
 
 

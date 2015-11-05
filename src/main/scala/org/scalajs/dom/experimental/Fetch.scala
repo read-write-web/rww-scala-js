@@ -1,11 +1,11 @@
 package org.scalajs.dom.experimental
 
 import org.scalajs.dom.crypto.BufferSource
-import org.scalajs.dom.raw.{Promise, FormData, MessagePort}
+import org.scalajs.dom.raw.{FormData, MessagePort, Promise}
 import org.scalajs.dom.{Blob, Event}
 
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSName
+import scala.scalajs.js.annotation.ScalaJSDefined
 import scala.scalajs.js.|
 import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.scalajs.js.{Dictionary, UndefOr, collection}
@@ -17,7 +17,7 @@ import scala.scalajs.js.{Dictionary, UndefOr, collection}
   * see https://fetch.spec.whatwg.org/#request-class
   */
 @js.native
-class Request(input: String | Request, init: RequestInit = null) extends js.Object {
+class Request(input: String | Request, init: RequestInit|js.Dictionary[js.Any] = null) extends js.Object {
 
   /**
     * Contains the request's method (GET, POST, etc.)
@@ -52,31 +52,42 @@ class Request(input: String | Request, init: RequestInit = null) extends js.Obje
   def integrity: String = js.native //should be DOMString
 }
 
+/**
+  * https://fetch.spec.whatwg.org/#response
+  *
+  * @param content
+  * @param init
+  */
 @js.native
 class Response(content: Blob | BufferSource | FormData | String = null, init: ResponseInit)
   extends Body {
 
-  def `type`: ResponseType = js.native
+  /** Contains the type of the response */
+  val `type`: ResponseType = js.native
 
-  def url: String = js.native
+  /** Contains the URL of the response. */
+  val url: String = js.native
 
-  def ok: Boolean = js.native
+  /** Contains a boolean stating whether the response was successful (status in the range 200-299) or not. */
+  val ok: Boolean = js.native
 
-  def status: Int = js.native //actually returns unsigned short
+  /** Contains the status code of the response (e.g., 200 for a success). */
+  val status: Int = js.native //actually returns unsigned short
 
-  def statusText: String = js.native //actuall returns ByteString
+  /** Contains the status message corresponding to the status code (e.g., OK for 200). */
+  val statusText: String = js.native //actuall returns ByteString
 
-  def headers: Headers = js.native //the definition says SameObject, what does that mean?
+  /** Contains the Headers object associated with the response. */
+  val headers: Headers = js.native //the definition says SameObject, what does that mean?
 
+  /** @return a new Response object associated with a network error. */
   def error(): Response = js.native
-
-  def body: ReadableStream = js.native
-
 
 }
 
 /**
   * https://fetch.spec.whatwg.org/#body
+  * https://developer.mozilla.org/en-US/docs/Web/API/Body
   *
   * bblfish: not clear from the definition if this is a number of traits that may be implemented
   * by the Response or not
@@ -84,17 +95,23 @@ class Response(content: Blob | BufferSource | FormData | String = null, init: Re
 @js.native
 trait Body extends js.Object {
 
+  /** MDN: Contains a Boolean that indicates whether the body has been read. */
   def bodyUsed: Boolean = js.native
 
+  /** MDN: Takes a Response stream and reads it to completion. It returns a promise that resolves with an ArrayBuffer. */
   def arrayBuffer(): Promise[ArrayBuffer] = js.native
 
+  /** Takes a Response stream and reads it to completion. It returns a promise that resolves with a Blob. */
   def blob(): Promise[Blob] = js.native
 
+  /** Takes a Response stream and reads it to completion. It returns a promise that resolves with a FormData object. */
   def formData(): Promise[FormData] = js.native
 
+  /** Takes a Response stream and reads it to completion. It returns a promise that resolves with a JSON object. */
   //todo: define the JSON type
   // def json(): Promise[JSON] = js.native
 
+  /** Takes a Response stream and reads it to completion. It returns a promise that resolves with a USVString (text). */
   def text(): Promise[String] = js.native
 
 }
@@ -199,20 +216,38 @@ class FetchEvent extends Event {
 }
 
 
+object RequestInit {
+  def apply(method: HttpMethod = HttpMethod.GET,
+    headers: Headers | js.Dictionary[String]=js.Dictionary[String](), //could also be sequence<sequence<ByteString>>
+    body: js.UndefOr[String] = js.undefined, //can also be Blob or BufferSource or FormData or URLSearchParams
+    referrer: js.UndefOr[String] = js.undefined, //should be USVString
+    referrerPolicy: ReferrerPolicy = ReferrerPolicy.empty,
+    mode: RequestMode = RequestMode.navigate,
+    credentials: RequestCredentials = RequestCredentials.omit,
+    requestCache: RequestCache = RequestCache.default,
+    requestRedirect: RequestRedirect = RequestRedirect.follow,
+    integrity: js.UndefOr[String] = js.undefined, //should be DomString
+    window: js.UndefOr[js.Any] = js.undefined
+  ) = new RequestInit(
+    method, headers, body, referrer, referrerPolicy, mode,
+    credentials, requestCache, requestRedirect, integrity, window
+  )
+}
 
-@js.native
+//todo: verify the defaults set here are the actual defaults
+@ScalaJSDefined
 class RequestInit(
-  val method: HttpMethod,
-  val headers: Headers | js.Dictionary[String], //could also be sequence<sequence<ByteString>>
-  val body: String, //can also be Blob or BufferSource or FormData or URLSearchParams
-  val referrer: String, //should be USVString
-  val referrerPolicy: ReferrerPolicy,
-  val mode: RequestMode,
-  val credentials: RequestCredentials,
-  val requestCache: RequestCache,
-  val requestRedirect: RequestRedirect,
-  val integrity: String, //should be DomString
-  val window: js.Any
+  val method: HttpMethod,//=HttpMethod.GET,
+  val headers: Headers | js.Dictionary[String],
+  val body: UndefOr[String],
+  val referrer: UndefOr[String],
+  val referrerPolicy: ReferrerPolicy,//=ReferrerPolicy.empty,
+  val mode: RequestMode,//=RequestMode.navigate,
+  val credentials: RequestCredentials,//=RequestCredentials.omit,
+  val requestCache: RequestCache,//=RequestCache.default,
+  val requestRedirect: RequestRedirect,//=RequestRedirect.follow,
+  val integrity: UndefOr[String], //=null, //should be DomString
+  val window: UndefOr[js.Any]
 ) extends js.Object
 
 @js.native

@@ -2,18 +2,21 @@ package rww.store
 
 import java.io.StringReader
 
-import akka.actor.{Props, Actor, ActorRef}
+import akka.actor.{Actor, ActorRef, Props}
 import org.scalajs.dom
+import org.scalajs.dom.experimental.{Response => HttpResponse, _}
 import org.scalajs.dom.ext.AjaxException
-import org.scalajs.dom.raw.{ProgressEvent, XMLHttpRequest}
+import org.scalajs.dom.raw.{ProgressEvent, Promise, XMLHttpRequest}
 import org.w3.banana.RDFOps
 import org.w3.banana.io.{JsonLd, NTriples, RDFReader, Turtle}
-import rww.Rdf
+import rww.{Rdf, log}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 import scala.scalajs.js
 import scala.scalajs.js.UndefOr
 import scala.util.{Failure, Success, Try}
+
 
 object WebResourceActor {
   //see http://doc.akka.io/docs/akka/2.3.11/scala/actors.html#props
@@ -39,8 +42,9 @@ class WebResourceActor(
   rdrJSONLD: RDFReader[Rdf, Future, JsonLd]
 ) extends Actor {
 
+  val rdfMimeTypes = "application/n-triples,application/ld+json;q=0.8,text/turtle;q=0.8"
+
   import ops._
-  import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
   var state: RequestState = UnRequested(resourceName)
 
@@ -57,13 +61,117 @@ class WebResourceActor(
   }
 
   protected
-  def forceFetch(base: Rdf#URI, proxiedURL: Rdf#URI, sender: ActorRef) = {
-    import scalaz.Scalaz._
+  def forceFetch(base: Rdf#URI, proxiedURL: Rdf#URI, sender: ActorRef): Unit = {
+    import org.scalajs.dom.experimental.fetch
+
+    def consume(reader: ReadableStreamReader): Promise[Unit] = {
+      var data: String = ""
+      new Promise[Unit](
+        (resolve: js.Function1[Unit, Any], reject: js.Function1[Any, Any]) => {
+          def pump(): Unit = {
+            reader.read().andThen { chunk: Chunk =>
+              if (chunk.done) {
+                resolve()
+                ()
+              }
+              else {
+                pump()
+              }
+            }.recover(reject)
+          }
+          pump()
+        }
+      )
+    }
+
+    def cacheStateOf(response: HttpResponse)(finalURLToState: Rdf#URI => RequestState): Unit = {
+      // responseURL is quite new. See https://xhr.spec.whatwg.org/#the-responseurl-attribute
+      // hence need for UndefOr ( but according to latest xhr spec it should return "" not undefined )
+      // todo: to remove dynamic use need to fix https://github.com/scala-js/scala-js-dom/issues/111
+      val finalURL = {
+        val redirectURLstr = response.url
+        val redirectURL = URI(redirectURLstr)
+        if (redirectURL == proxiedURL || redirectURLstr == "")
+          base
+        else
+          redirectURL
+      }
+      if (finalURL != base) {
+        update(Redirected(base, finalURL), sender)
+        //todo: need to send back a request to change the state of the final URL
+      } else update(finalURLToState(finalURL), sender)
+
+    }
+
+    val ri = js.Dynamic.literal(
+      headers = js.Dictionary("Accept" -> rdfMimeTypes),
+      requestCache = RequestCache.reload
+//      mode = RequestMode.cors
+    )
+
+    log("request init",ri)
+    fetch(proxiedURL.toString,ri ) andThen { res: HttpResponse =>
+      import scala.scalajs.js.collection.JSIterator._
+      //      consume(res.body.getReader(),res.headers.get("Content-Length"))
+      res.text() andThen { txt: String =>
+        if (res.ok) {
+          import org.w3.banana.TryW
+
+          val rh = res.headers.get("Content-Type").toOption
+          println(s"<$proxiedURL> content is ${txt.substring(0, 80)}")
+          val reader = new StringReader(txt)
+          for {
+            g <- rh.map(_.takeWhile(_ != ';').trim.toLowerCase) match {
+              case Some("application/n-triples") => rdrNT.read(reader, base.toString).asFuture
+              case Some("application/ld+json") => rdrJSONLD.read(reader, base.toString)
+              case Some("text/turtle") => rdrTurtle.read(reader, base.toString)
+              case Some(other) => Future.failed(new scala.Exception("could not find parser for " + other))
+              case None => Future.failed(
+                new scala.Exception("missing content type on response - unable to parse response"
+                ))
+            }
+          } yield {
+            cacheStateOf(res) { graphUrl: Rdf#URI =>
+              Ok(res.status,
+                graphUrl,
+                res.headers.iterator().map(a => a.mkString(": ")).toList.mkString("\n"),
+                txt,
+                Success(g)
+              )
+            }
+          }
+        } else {
+          println(s"Failure for <$base> with code ${res.status}")
+          //todo: deal with redirects here too
+          cacheStateOf(res)(
+            url => HttpError(url,
+              code = res.status,
+              headers = res.headers.iterator().map(a => a.mkString(": ")).toList.mkString("\n"),
+              body = txt)
+          )
+        }
+      } recover { e: Any =>
+        log("~~> in recover from fetch",e.asInstanceOf[js.Any])
+        cacheStateOf(res)(
+          url => HttpError(url,
+            code = res.status,
+            headers = res.headers.iterator().map(a => a.mkString(": ")).toList.mkString("\n"),
+            body = e.toString)
+        )
+      }
+    }
+  }
+
+
+
+  protected
+  def forceFetchAjax(base: Rdf#URI, proxiedURL: Rdf#URI, sender: ActorRef) = {
     import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+    import scalaz.Scalaz._
 
     AjaxPlus.get(
       proxiedURL.toString,
-      headers = Map("Accept" -> "application/n-triples,application/ld+json;q=0.8,text/turtle;q=0.8"),
+      headers = Map("Accept" -> rdfMimeTypes),
       progress = (ev: ProgressEvent) => {
         if (ev.lengthComputable && ev.loaded != ev.total)
           sender ! Downloading(base, (ev.lengthComputable).option(ev.loaded / ev.total))
@@ -102,7 +210,10 @@ class WebResourceActor(
               case Some("application/ld+json") => rdrJSONLD.read(reader, base.toString)
               case Some("text/turtle") => rdrTurtle.read(reader, base.toString)
               case Some(other) => Future.failed(new scala.Exception("could not find parser for " + other))
-              case None => Future.failed(new scala.Exception("problem fetching remote resource:" + xhr.statusText))
+              case None => Future.failed(
+                new scala.Exception(
+                  "missing content type on response - unable to parse data!"
+                ))
             }
           } yield {
             cacheStateOf(xhr) { graphUrl =>

@@ -1,15 +1,19 @@
 import org.w3.banana.PointedGraph
-import org.w3.banana.io.{JsonLd, Turtle, RDFReader}
+import org.w3.banana.io.{JsonLd, RDFReader, Turtle}
 import org.w3.banana.jsonldjs.io.JsonLdJsParser
 import org.w3.banana.n3js.io.N3jsTurtleParser
 import org.w3.banana.plantain.Plantain
 import rww.rdf.Named
 import rww.ui.rdf.{NPGPath, NPGPathIterableW}
+
 import scala.concurrent.Future
-import scalajs.concurrent.JSExecutionContext.Implicits.runNow
+import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+import scala.scalajs.js
+import scala.scalajs.js.Dynamic.{global => g}
 
 
 package object rww {
+  import scala.scalajs.js.Dynamic.{global => g}
 
   type Rdf = Plantain
   val Rdf = Plantain
@@ -24,4 +28,8 @@ package object rww {
 
   implicit def toNPGPathIterableW(npgi: Iterable[NPGPath]): NPGPathIterableW =
     new NPGPathIterableW(npgi)
+
+   def log(msg: String,err: js.Any): Unit = {
+    g.console.log(msg,err)
+  }
 }

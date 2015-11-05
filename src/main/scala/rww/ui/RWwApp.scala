@@ -56,12 +56,14 @@ object RWwApp {
     val authEndpoints = webIDauth.flatMap(u=> Try(new jURI(u)).toOption.toList)
     val origin = new jURI(scalajs.dom.window.location.origin)
     val proxy = dev_proxySrvc.map(new jURI(_)).flatMap(p=>
-      if (List("localhost","127.0.0.1").contains(origin.getHost)
-        && origin.getPort == p.getPort
-        && origin.getScheme == p.getScheme)
+      if (List("localhost","127.0.0.1").contains(origin.getHost))
+//        && origin.getPort == p.getPort
+//        && origin.getScheme == p.getScheme)
          dev_proxySrvc
       else js.undefined
     ).orElse(proxySrvc)
+
+    println("proxy="+proxy.toOption)
 
     new RWwApp(dashboardUri.getOrElse(""), proxy.toOption, authEndpoints.toList).run()
   }
