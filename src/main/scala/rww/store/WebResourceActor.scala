@@ -104,13 +104,13 @@ class WebResourceActor(
     }
 
     val ri = js.Dynamic.literal(
-      headers = js.Dictionary("Accept" -> rdfMimeTypes),
+      headers = js.Dictionary(  "Accept" -> rdfMimeTypes ),
       requestCache = RequestCache.reload
-//      mode = RequestMode.cors
+//      window = null // should work in the future
     )
 
     log("request init",ri)
-    fetch(proxiedURL.toString,ri ) andThen { res: HttpResponse =>
+    fetch(proxiedURL.toString, ri) andThen { res: HttpResponse =>
       import scala.scalajs.js.collection.JSIterator._
       //      consume(res.body.getReader(),res.headers.get("Content-Length"))
       res.text() andThen { txt: String =>

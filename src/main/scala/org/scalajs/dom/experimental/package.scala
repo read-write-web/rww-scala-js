@@ -4,7 +4,7 @@ package org.scalajs.dom
 import org.scalajs.dom.raw.Promise
 
 import scala.scalajs.js
-import scala.scalajs.js.|
+import scala.scalajs.js.`|`
 /**
   * Created by hjs on 02/11/2015.
   */

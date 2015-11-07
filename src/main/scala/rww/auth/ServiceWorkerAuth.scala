@@ -1,12 +1,16 @@
 package rww.auth
 
+import org.scalajs.dom.crypto._
 import org.scalajs.dom.experimental.{FetchEvent, _}
 import org.scalajs.dom.raw.{Event, Promise, ServiceWorker}
 import rww.log
 
+import scala.scalajs.js
 import scala.scalajs.js.Dynamic.{global => g}
 import scala.scalajs.js.annotation.JSExport
+import scala.scalajs.js.typedarray.Uint8Array
 import scala.util.control.NonFatal
+import scala.scalajs.js.`|`
 
 /**
  * Created by hjs on 29/10/2015.
@@ -14,6 +18,22 @@ import scala.util.control.NonFatal
  */
 @JSExport
 object ServiceWorkerAuth {
+
+
+
+  // example http://www.w3.org/TR/WebCryptoAPI/#examples-signing
+  lazy val key: Promise[js.Any] ={
+    val xxx =       RsaHashedKeyGenParams(
+      2048,
+      new Uint8Array(js.Array[Short](1,0,1)), //65537
+      HashAlgorithm.`SHA-256`).asInstanceOf[AlgorithmIdentifier]
+    log("~~~> rsaHashedKeyGenParams",xxx.asInstanceOf[js.Dynamic])
+    GlobalCrypto.crypto.subtle.generateKey(
+      xxx,
+      false,
+      js.Array(KeyUsages.sign,KeyUsages.verify)
+    )
+  }
 
   @JSExport
   def run(thiz: ServiceWorker): Unit = {
@@ -24,6 +44,9 @@ object ServiceWorkerAuth {
 
   def installListener(e: Event) = {
     log("~~~!!> received event = ",e)
+    key.andThen((key: js.Any) => log("~~~> created key", key),
+      (e: Any)=>log("problem with key creation",e.asInstanceOf[js.Any]))
+
   }
 
   def isSignature(ah: String): Boolean = ah.toLowerCase.startsWith("signature")
@@ -33,7 +56,7 @@ object ServiceWorkerAuth {
        ah<-response.headers.get("WWW-Authenticate")
        if (isSignature(ah))
      } yield {
-//       response.clone()
+
      }
     ???
   }

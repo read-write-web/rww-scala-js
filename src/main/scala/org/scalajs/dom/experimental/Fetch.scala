@@ -6,7 +6,7 @@ import org.scalajs.dom.{Blob, Event}
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.ScalaJSDefined
-import scala.scalajs.js.|
+import scala.scalajs.js.`|`
 import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.scalajs.js.{Dictionary, UndefOr, collection}
 
@@ -293,6 +293,8 @@ object RequestMode {
   val `same-origin` = "same-origin".asInstanceOf[RequestMode]
   val `no-cors`     = "no-cors".asInstanceOf[RequestMode]
   val cors          = "cors".asInstanceOf[RequestMode]
+  /** see https://github.com/whatwg/fetch/issues/152 */
+  val `cors-with-forced-preflight` = "cors-with-forced-preflight".asInstanceOf[RequestMode]
 }
 
 @js.native

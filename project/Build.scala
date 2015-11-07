@@ -53,7 +53,7 @@ object RWwScalaJS extends Build {
         "org.webjars.npm" % "react-dom" % "0.14.0" / "react-dom.js"         commonJSName "ReactDOM" minified "react-dom.min.js" dependsOn "react-with-addons.js"
       ),
       libraryDependencies ++= Seq(
-        "org.scala-js" %%% "scalajs-dom" % "0.8.1",
+        "org.scala-js" %%% "scalajs-dom" % "0.9.0-SNAPSHOT",
         "com.github.japgolly.scalajs-react" %%% "core" % "0.10.0",
 //      "com.github.japgolly.scalajs-react" %%% "test" % "0.9.0" % "test",
         "com.github.japgolly.scalajs-react" %%% "extra" % "0.10.0",

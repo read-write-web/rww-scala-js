@@ -71,9 +71,9 @@ object RWwApp {
   val AuthServiceWorker: Future[ServiceWorkerRegistration] = {
     val result = SPromise[ServiceWorkerRegistration]()
     import js.Dynamic.literal
-    if (!js.isUndefined(dom.navigator.serviceWorker)) {
+    if (!js.isUndefined(dom.window.navigator.serviceWorker)) {
       // check if serviceWorker supported or not
-      dom.navigator.serviceWorker
+      dom.window.navigator.serviceWorker
         .register("ServiceWorker.js", literal(scope = "."))
         .andThen((resp: ServiceWorkerRegistration) => {
           println(s" ServiceWorker registered ${new Date()} successfully : ${JSON.stringify(resp)}  ")
