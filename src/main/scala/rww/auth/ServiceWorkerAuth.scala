@@ -137,34 +137,37 @@ object ServiceWorkerAuth {
   def fetchListener(e: FetchEvent): Unit = {
     log(s"~~sw fetch> ${e.request.method} <${e.request.url}>:", e.request)
     e.respondWith {
-      try {
-        //see issue https://github.com/scala-js/scala-js-dom/issues/164
-        val p: Promise[Any] = fetch(e.request).andThen({ response: Response =>
-          log(s"~~sw fetch response> ${response.status} <${response.url}>. headers=",
-            rww.headerToString(response.headers))
-
-          response.status match {
-            case 401 if response.headers.has("WWW-Authenticate") => {
-              log("~~fetchListerner> intercepted 401", response.url)
-              //              response
-              sign(e.request, response)
-              //              fetch(sign(response))
-            }
-            case r => {
-              e.request
-            }
-            //            case _ => response
-          }
-        })
-        p.asInstanceOf[Promise[Response]]
-      } catch {
-        case scala.scalajs.js.JavaScriptException(e: scala.scalajs.js.Object) => {
-          log("~>next the stack trace of the error itself", e)
-          Promise.reject("~~sw fetch error> "+e)
-        }
-        case NonFatal(e) => Promise.reject("~~ sw fetch error>"+ e.toString)
-      }
+      fetch(e.request)
     }
+//      log("hhahahahahah",e)
+//      try {
+//        //see issue https://github.com/scala-js/scala-js-dom/issues/164
+//        val p: Promise[Any] = fetch(e.request).andThen({ response: Response =>
+//          log(s"~~sw fetch response> ${response.status} <${response.url}>. headers=",
+//            rww.headerToString(response.headers))
+//
+//          response.status match {
+//            case 401 if response.headers.has("WWW-Authenticate") => {
+//              log("~~fetchListerner> intercepted 401", response.url)
+//              //              response
+//              sign(e.request, response)
+//              //              fetch(sign(response))
+//            }
+//            case r => {
+//              e.request
+//            }
+//            //            case _ => response
+//          }
+//        })
+//        p.asInstanceOf[Promise[Response]]
+//      } catch {
+//        case scala.scalajs.js.JavaScriptException(e: scala.scalajs.js.Object) => {
+//          log("~>next the stack trace of the error itself", e)
+//          Promise.reject("~~sw fetch error> "+e)
+//        }
+//        case NonFatal(e) => Promise.reject("~~ sw fetch error>"+ e.toString)
+//      }
+//    }
   }
 
 }
