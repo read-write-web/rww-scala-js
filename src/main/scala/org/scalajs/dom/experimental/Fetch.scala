@@ -163,6 +163,9 @@ class Headers(map: js.Dictionary[String] | Array[Array[String]] | Headers = Dict
     * The difference between set() and Headers.append is that if the specified header already exists and accepts
     * multiple values, set() overwrites the existing value with the new one, whereas Headers.append appends the new
     * value to the end of the set of values.
+    *
+    * Not all headers can be set. See the list of forbidden header names in
+    * https://fetch.spec.whatwg.org/#terminology-headers
     */
   def set(name: String, value: String): Unit = js.native
 

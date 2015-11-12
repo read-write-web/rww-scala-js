@@ -1,3 +1,4 @@
+import org.scalajs.dom.experimental.Headers
 import org.w3.banana.PointedGraph
 import org.w3.banana.io.{JsonLd, RDFReader, Turtle}
 import org.w3.banana.jsonldjs.io.JsonLdJsParser
@@ -31,5 +32,11 @@ package object rww {
 
    def log(msg: String,err: js.Any): Unit = {
     g.console.log(msg,err)
+  }
+
+  def headerToString(headers: Headers): String = {
+    import scala.scalajs.js.collection.JSIterator._
+    val l = for (h <- headers.iterator.toList) yield h(0) + ":" + h.jsSlice(1).mkString(",")
+    l.mkString("\n")
   }
 }

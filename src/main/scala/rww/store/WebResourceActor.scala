@@ -141,7 +141,8 @@ class WebResourceActor(
             }
           }
         } else {
-          println(s"Failure for <$base> with code ${res.status}")
+          log(s"~fetch> Failure for <$base> with code ${res.status}. headers:",
+            rww.headerToString(res.headers))
           //todo: deal with redirects here too
           cacheStateOf(res)(
             url => HttpError(url,

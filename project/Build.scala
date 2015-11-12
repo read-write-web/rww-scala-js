@@ -54,6 +54,9 @@ object RWwScalaJS extends Build {
       ),
       libraryDependencies ++= Seq(
         "org.scala-js" %%% "scalajs-dom" % "0.9.0-SNAPSHOT",
+        //repo: https://github.com/marklister/base64
+        //http://central.maven.org/maven2/com/github/marklister/base64_sjs0.6_2.11/0.1.1/
+        "com.github.marklister" %%% "base64" % "0.1.1",
         "com.github.japgolly.scalajs-react" %%% "core" % "0.10.0",
 //      "com.github.japgolly.scalajs-react" %%% "test" % "0.9.0" % "test",
         "com.github.japgolly.scalajs-react" %%% "extra" % "0.10.0",
