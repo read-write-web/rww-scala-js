@@ -137,9 +137,13 @@ object ServiceWorkerAuth {
   def fetchListener(e: FetchEvent): Unit = {
     log(s"~~sw fetch> ${e.request.method} <${e.request.url}>:", e.request)
     e.respondWith {
-      fetch(e.request)
+      val promise = fetch(e.request).andThen{ response: Response =>
+        log(s"~~sw fetch response> ${response.status} <${response.url}>. headers=",
+                      rww.headerToString(response.headers))
+        response
+      }
+        promise.asInstanceOf[Promise[Response]]
     }
-//      log("hhahahahahah",e)
 //      try {
 //        //see issue https://github.com/scala-js/scala-js-dom/issues/164
 //        val p: Promise[Any] = fetch(e.request).andThen({ response: Response =>
