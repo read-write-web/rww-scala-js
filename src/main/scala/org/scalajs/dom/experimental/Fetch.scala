@@ -12,6 +12,8 @@ import scala.scalajs.js.{Dictionary, UndefOr, collection}
 
 /**
   * The Request interface of the Fetch API represents a resource request.
+  * @param input the url of the requested resource or an unused Request object.
+  * @param init initialisation information
   *
   * MDN
   * see https://fetch.spec.whatwg.org/#request-class

@@ -1,21 +1,28 @@
 package rww.store
 
 import java.io.StringReader
+import java.net.{URI => jURI}
 
 import akka.actor.{Actor, ActorRef, Props}
 import org.scalajs.dom
-import org.scalajs.dom.experimental.{Response => HttpResponse, _}
+import org.scalajs.dom.crypto._
+import org.scalajs.dom.experimental.{Request => HttpRequest, Response => HttpResponse, _}
 import org.scalajs.dom.ext.AjaxException
 import org.scalajs.dom.raw.{ProgressEvent, Promise, XMLHttpRequest}
 import org.w3.banana.RDFOps
 import org.w3.banana.io.{JsonLd, NTriples, RDFReader, Turtle}
 import rww.{Rdf, log}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 import scala.scalajs.js
-import scala.scalajs.js.UndefOr
+import scala.scalajs.js.Dynamic.literal
+import scala.scalajs.js.collection.JSIterator._
+import scala.scalajs.js.typedarray.{ArrayBuffer, TypedArrayBuffer, Uint16Array}
+import scala.scalajs.js.{Error, UndefOr}
 import scala.util.{Failure, Success, Try}
+
 
 
 object WebResourceActor {
@@ -47,6 +54,9 @@ class WebResourceActor(
   import ops._
 
   var state: RequestState = UnRequested(resourceName)
+
+
+  def isSignature(ah: String): Boolean = ah.toLowerCase.startsWith("signature")
 
   def update(newState: RequestState,sender: ActorRef) = {
     state = newState
@@ -84,6 +94,78 @@ class WebResourceActor(
       )
     }
 
+    implicit class JSFutureOps[R](f: Future[R]) {
+      def toPromise
+      (implicit ectx: ExecutionContext): Promise[R] =
+        new Promise[R]((
+          resolve: js.Function1[R, Any],
+          reject: js.Function1[Any, Any]
+        ) => {
+          f.onSuccess {
+            case (f: R) => resolve(f)
+            case other => reject(new Error(s"Mhh. could not map $f to type "))
+          }
+          f.onFailure {
+            case e: Throwable => reject(new Error(e.toString))
+          }
+        })
+    }
+
+    def sign(request: HttpRequest, response: HttpResponse): Promise[HttpResponse] = {
+      val x = for {
+        ah<-response.headers.get("WWW-Authenticate")
+        if (isSignature(ah))
+      } yield {
+        val method = request.method.toString.toLowerCase
+        val path = request.url
+        val host = request.headers.get("host")
+        //       val user = request.headers.get("User")
+        val now = new js.Date().toISOString()
+        val nr = new HttpRequest(request)
+        nr.headers.set("Signature-Date",now)
+        val toSign =
+          s"""(request-target) $method $path
+              |host: $host
+              |signature-date: $now
+              |""".stripMargin
+        //1. calculate signature
+
+        val keyPromise = KeyStore.keyFuture.toPromise
+        keyPromise.andThen { ki: KeyInfo =>
+          val ckp: CryptoKeyPair = ki.keyPair
+          import org.scalajs.dom.crypto.arrayBuffer2BufferSource
+          log("~sign>private key", ckp.privateKey)
+          log("~sign>pubkey algorithm", ckp.privateKey.algorithm)
+          log("~sign>buffer source", new Uint16Array(toSign.toCharArray.asInstanceOf[js.Array[Char]]).buffer)
+          val s = GlobalCrypto.crypto.subtle.sign(
+            ckp.publicKey.algorithm,
+            ckp.privateKey,
+            arrayBuffer2BufferSource(new Uint16Array(toSign.toCharArray.asInstanceOf[js.Array[Char]]).buffer)
+          )
+          s.andThen { sig: js.Any =>
+            //2. add signature
+            import com.github.marklister.base64.Base64._
+            val bb = TypedArrayBuffer.wrap(sig.asInstanceOf[ArrayBuffer])
+            val arraybuf: Array[Byte] = new Array[Byte](bb.remaining())
+            bb.get(arraybuf)
+            val hashedSig = arraybuf.toBase64
+            log("~sign> in Sig. received", hashedSig)
+            val sigHdr =
+              s"""Signature keyId="https://joe.example:8443/2013/key#",algorithm="rsa-sha256",
+                  |headers="(request-target) host signature-date",
+                  |signature="${hashedSig}"
+                  |""".stripMargin.replaceAll("\n", "")
+            log("~sign>returning sig", sigHdr)
+            nr.headers.set("Authorization", sigHdr)
+            fetch(nr)
+          }
+        }
+      }
+      val res = x.getOrElse(new Promise((resolve: js.Function1[Unit, Any], reject: js.Function1[Any, Any])=>response))
+      res.asInstanceOf[Promise[HttpResponse]]
+    }
+
+
     def cacheStateOf(response: HttpResponse)(finalURLToState: Rdf#URI => RequestState): Unit = {
       // responseURL is quite new. See https://xhr.spec.whatwg.org/#the-responseurl-attribute
       // hence need for UndefOr ( but according to latest xhr spec it should return "" not undefined )
@@ -103,46 +185,74 @@ class WebResourceActor(
 
     }
 
-    val ri = js.Dynamic.literal(
-      headers = js.Dictionary(  "Accept" -> rdfMimeTypes ),
+    val requestInit = literal(
+      headers = literal(  "Accept" -> rdfMimeTypes ),
       requestCache = RequestCache.reload
 //      window = null // should work in the future
-    )
+    ).asInstanceOf[js.Dictionary[js.Any]]
 
-    log("request init",ri)
-    fetch(proxiedURL.toString, ri) andThen { res: HttpResponse =>
-      import scala.scalajs.js.collection.JSIterator._
-      //      consume(res.body.getReader(),res.headers.get("Content-Length"))
+    log("request init",requestInit)
+    val request = new HttpRequest(proxiedURL.toString, requestInit)
+
+    def process(res: HttpResponse, txt: String): Future[Unit] = {
+      import org.w3.banana.TryW
+
+      val rh = res.headers.get("Content-Type").toOption
+      println(s"<$proxiedURL> content is ${txt.substring(0, 80)}")
+      val reader = new StringReader(txt)
+      for {
+        g <- rh.map(_.takeWhile(_ != ';').trim.toLowerCase) match {
+          case Some("application/n-triples") => rdrNT.read(reader, base.toString).asFuture
+          case Some("application/ld+json") => rdrJSONLD.read(reader, base.toString)
+          case Some("text/turtle") => rdrTurtle.read(reader, base.toString)
+          case Some(other) => Future.failed(new scala.Exception("could not find parser for " + other))
+          case None => Future.failed(
+            new scala.Exception("missing content type on response - unable to parse response"
+            ))
+        }
+      } yield {
+        cacheStateOf(res) { graphUrl: Rdf#URI =>
+          Ok(res.status,
+            graphUrl,
+            res.headers.iterator().map(a => a.mkString(": ")).toList.mkString("\n"),
+            txt,
+            Success(g)
+          )
+        }
+      }
+    }
+    fetch(request) andThen { res: HttpResponse =>
+      log(s"~fetch> ${res.status} <$base> headers:",
+        rww.headerToString(res.headers))
+
+      // todo: make this asynchronous
+      // consume(res.body.getReader(),res.headers.get("Content-Length"))
       res.text() andThen { txt: String =>
         if (res.ok) {
-          import org.w3.banana.TryW
+          process(res, txt)
+        } else if (res.status == 401) {
+          log("~~fetchListener> intercepted 401", res.url)
+          //              response
+          // one cannot just use an old request! so one has to make a new one.
+          val newRequest = new HttpRequest(request.url,requestInit)
+          sign(newRequest, res).andThen { res2: HttpResponse =>
+            log(s"~fetch signed response> ${res2.status} <$base> headers:",
+              rww.headerToString(res2.headers))
 
-          val rh = res.headers.get("Content-Type").toOption
-          println(s"<$proxiedURL> content is ${txt.substring(0, 80)}")
-          val reader = new StringReader(txt)
-          for {
-            g <- rh.map(_.takeWhile(_ != ';').trim.toLowerCase) match {
-              case Some("application/n-triples") => rdrNT.read(reader, base.toString).asFuture
-              case Some("application/ld+json") => rdrJSONLD.read(reader, base.toString)
-              case Some("text/turtle") => rdrTurtle.read(reader, base.toString)
-              case Some(other) => Future.failed(new scala.Exception("could not find parser for " + other))
-              case None => Future.failed(
-                new scala.Exception("missing content type on response - unable to parse response"
-                ))
-            }
-          } yield {
-            cacheStateOf(res) { graphUrl: Rdf#URI =>
-              Ok(res.status,
-                graphUrl,
-                res.headers.iterator().map(a => a.mkString(": ")).toList.mkString("\n"),
-                txt,
-                Success(g)
+            //todo: ugly manual recursion
+            if (res2.ok) {
+              res2.text() andThen { txt: String => process(res2, txt) }
+            } else {
+              cacheStateOf(res2)(
+                url => HttpError(url,
+                  code = res2.status,
+                  headers = res2.headers.iterator().map(a => a.mkString(": ")).toList.mkString("\n"),
+                  body = "could not authenticate")
               )
             }
           }
+          //              fetch(sign(response))
         } else {
-          log(s"~fetch> Failure for <$base> with code ${res.status}. headers:",
-            rww.headerToString(res.headers))
           //todo: deal with redirects here too
           cacheStateOf(res)(
             url => HttpError(url,

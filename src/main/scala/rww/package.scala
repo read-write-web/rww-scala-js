@@ -1,4 +1,6 @@
+import org.scalajs.dom.crypto._
 import org.scalajs.dom.experimental.Headers
+import org.scalajs.dom.raw.Promise
 import org.w3.banana.PointedGraph
 import org.w3.banana.io.{JsonLd, RDFReader, Turtle}
 import org.w3.banana.jsonldjs.io.JsonLdJsParser
@@ -11,6 +13,7 @@ import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.{global => g}
+import scala.scalajs.js.typedarray.Uint8Array
 
 
 package object rww {
@@ -39,4 +42,5 @@ package object rww {
     val l = for (h <- headers.iterator.toList) yield h(0) + ":" + h.jsSlice(1).mkString(",")
     l.mkString("\n")
   }
+
 }
