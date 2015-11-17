@@ -2,6 +2,7 @@ package rww.store
 
 import java.io.StringReader
 import java.net.{URI => jURI}
+import java.nio.ByteBuffer
 
 import akka.actor.{Actor, ActorRef, Props}
 import org.scalajs.dom
@@ -13,14 +14,13 @@ import org.w3.banana.RDFOps
 import org.w3.banana.io.{JsonLd, NTriples, RDFReader, Turtle}
 import rww.{Rdf, log}
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.ClassTag
-import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+import scala.concurrent.Future
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.literal
+import scala.scalajs.js.UndefOr
 import scala.scalajs.js.collection.JSIterator._
-import scala.scalajs.js.typedarray.{ArrayBuffer, TypedArrayBuffer, Uint16Array}
-import scala.scalajs.js.{Error, UndefOr}
+import scala.scalajs.concurrent.JSExecutionContext
+import scala.scalajs.js.typedarray.{ArrayBuffer, TypedArrayBuffer, Uint8Array}
 import scala.util.{Failure, Success, Try}
 
 
@@ -94,65 +94,73 @@ class WebResourceActor(
       )
     }
 
-    implicit class JSFutureOps[R](f: Future[R]) {
-      def toPromise
-      (implicit ectx: ExecutionContext): Promise[R] =
-        new Promise[R]((
-          resolve: js.Function1[R, Any],
-          reject: js.Function1[Any, Any]
-        ) => {
-          f.onSuccess {
-            case (f: R) => resolve(f)
-            case other => reject(new Error(s"Mhh. could not map $f to type "))
-          }
-          f.onFailure {
-            case e: Throwable => reject(new Error(e.toString))
-          }
-        })
-    }
-
+    /**
+      * If the response contains <code>WWW-Authenticate: Signature ...</code> header
+      * then this will retry the request but with a <code>Authorization: Signature ...</code>
+      * header as defined by the
+      * <a href="https://tools.ietf.org/html/draft-cavage-http-signatures-05">http signatures</a>
+      * draft rfc.
+      *
+      * This can result in the creation of a keypair ( todo: though that would also require publication
+      * of the public key to have any chance of working  ).
+      *
+      * The signature will contain the User header if the <code>userId</code> field is set in the
+      * KeyInfo
+      *
+      * @param request
+      * @param response
+      * @return
+      */
     def sign(request: HttpRequest, response: HttpResponse): Promise[HttpResponse] = {
       val x = for {
         ah<-response.headers.get("WWW-Authenticate")
         if (isSignature(ah))
       } yield {
-        val method = request.method.toString.toLowerCase
-        val path = request.url
-        val host = request.headers.get("host")
-        //       val user = request.headers.get("User")
-        val now = new js.Date().toISOString()
-        val nr = new HttpRequest(request)
-        nr.headers.set("Signature-Date",now)
-        val toSign =
-          s"""(request-target) $method $path
-              |host: $host
-              |signature-date: $now
-              |""".stripMargin
         //1. calculate signature
-
+        import JSExecutionContext.Implicits.queue
+        import rww.JSFutureOps
         val keyPromise = KeyStore.keyFuture.toPromise
         keyPromise.andThen { ki: KeyInfo =>
           val ckp: CryptoKeyPair = ki.keyPair
-          import org.scalajs.dom.crypto.arrayBuffer2BufferSource
+
+          val url = new java.net.URI(request.url)
+          val method = request.method.toString.toLowerCase
+          val path = url.getPath + {if(url.getQuery==null)""else "?"+url.getQuery}
+          val host = url.getAuthority
+          val now = new js.Date().toISOString()
+          val nr = new HttpRequest(request)
+          nr.headers.set("Signature-Date",now)
+          val sigText =
+            s"(request-target): $method $path\n"+
+            s"host: $host\n"+
+              ki.userId.map(u=>s"user: $u\n").getOrElse("")+
+            s"signature-date: $now"
+
+          log("~sign> sigText=",">>>"+sigText+"<<<")
           log("~sign>private key", ckp.privateKey)
           log("~sign>pubkey algorithm", ckp.privateKey.algorithm)
-          log("~sign>buffer source", new Uint16Array(toSign.toCharArray.asInstanceOf[js.Array[Char]]).buffer)
+
+          import js.JSConverters._
           val s = GlobalCrypto.crypto.subtle.sign(
             ckp.publicKey.algorithm,
             ckp.privateKey,
-            arrayBuffer2BufferSource(new Uint16Array(toSign.toCharArray.asInstanceOf[js.Array[Char]]).buffer)
+            new Uint8Array(sigText.getBytes("ASCII").toJSArray).buffer
           )
           s.andThen { sig: js.Any =>
             //2. add signature
-            import com.github.marklister.base64.Base64._
             val bb = TypedArrayBuffer.wrap(sig.asInstanceOf[ArrayBuffer])
-            val arraybuf: Array[Byte] = new Array[Byte](bb.remaining())
-            bb.get(arraybuf)
-            val hashedSig = arraybuf.toBase64
-            log("~sign> in Sig. received", hashedSig)
+            val hashedSig = {
+              import com.github.marklister.base64.Base64._
+
+              val arraybuf: Array[Byte] = new Array[Byte](bb.remaining())
+              bb.get(arraybuf)
+              arraybuf.toBase64
+            }
+
+            def user = ki.userId.fold(" ")(_=>" user ")
             val sigHdr =
               s"""Signature keyId="https://joe.example:8443/2013/key#",algorithm="rsa-sha256",
-                  |headers="(request-target) host signature-date",
+                  |headers="(request-target) host${ user }signature-date",
                   |signature="${hashedSig}"
                   |""".stripMargin.replaceAll("\n", "")
             log("~sign>returning sig", sigHdr)
@@ -196,6 +204,7 @@ class WebResourceActor(
 
     def process(res: HttpResponse, txt: String): Future[Unit] = {
       import org.w3.banana.TryW
+      import JSExecutionContext.Implicits.queue
 
       val rh = res.headers.get("Content-Type").toOption
       println(s"<$proxiedURL> content is ${txt.substring(0, 80)}")
@@ -277,7 +286,7 @@ class WebResourceActor(
 
   protected
   def forceFetchAjax(base: Rdf#URI, proxiedURL: Rdf#URI, sender: ActorRef) = {
-    import scala.scalajs.concurrent.JSExecutionContext.Implicits.runNow
+    import JSExecutionContext.Implicits.queue
     import scalaz.Scalaz._
 
     AjaxPlus.get(

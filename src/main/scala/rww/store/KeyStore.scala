@@ -2,6 +2,7 @@ package rww.store
 
 import java.net.{URI => jURI}
 
+import com.github.marklister.base64.Base64
 import com.viagraphs.idb._
 import monifu.concurrent.Scheduler
 import org.scalajs.dom.crypto._
@@ -18,8 +19,9 @@ import scala.scalajs.js.Dynamic.literal
 @js.native
 trait KeyInfo extends js.Object {
   val keyPair: CryptoKeyPair      = js.native
-  val name   : js.UndefOr[String] = js.native
   val date   : js.Date            = js.native
+  val keyId  : js.UndefOr[String] = js.native
+  val userId : js.UndefOr[String] = js.native
 }
 
 object KeyInfo {
@@ -29,10 +31,18 @@ object KeyInfo {
       created = created
     ).asInstanceOf[KeyInfo]
 
-  def apply(keyPair: CryptoKeyPair, created: js.Date, name: String): KeyInfo =
+  def apply(keyPair: CryptoKeyPair, created: js.Date, keyId: String): KeyInfo =
     literal(
       keyPair = keyPair,
-      name = name,
+      keyId = keyId,
+      created = created
+    ).asInstanceOf[KeyInfo]
+
+  def apply(keyPair: CryptoKeyPair, created: js.Date, keyId: String, userId: String): KeyInfo =
+    literal(
+      keyPair = keyPair,
+      keyId = keyId,
+      userId = userId,
       created = created
     ).asInstanceOf[KeyInfo]
 
@@ -113,69 +123,54 @@ object KeyStore {
           case None => Future.failed(new Throwable("could not create key"))
         }
       })
-      case Some(keyinfo) => Future.successful(keyinfo._2)
+      case Some(keyinfo) => {
+        asTurtle(keyinfo._2.keyPair.publicKey).andThen((s:String)=>
+          log("keystore> retrieved public key",s)
+        )
+        Future.successful(keyinfo._2)
+      }
     }
   }
 
 
   def createKey: Future[KeyInfo] = {
-    /**
-      *
-      * @param base64Urlencoded string
-      * @return base64 encoded string
-      */
-    def urlDecode(base64Urlencoded: String): String = {
-      val newstr = (base64Urlencoded + "===")
-        .substring(0, base64Urlencoded.length + (base64Urlencoded.length % 4))
-      newstr.map {
-        case '-' => '+'
-        case '_' => '/'
-        case other => other
-      }
-    }
+    import rww._
 
-    val xxx = RsaHashedKeyGenParams("RSASSA-PKCS1-v1_5",
+    val rsaParams = RsaHashedKeyGenParams("RSASSA-PKCS1-v1_5",
       2048,
       new BigInteger(js.Array[Short](1, 0, 1)), //65537
       HashAlgorithm.`SHA-256`).asInstanceOf[KeyAlgorithmIdentifier]
 
 
-    log("~~~> rsaHashedKeyGenParams", xxx.asInstanceOf[js.Dynamic])
-    val promise = Promise[CryptoKeyPair]()
+    log("~~~> rsaHashedKeyGenParams", rsaParams.asInstanceOf[js.Dynamic])
 
     val key = GlobalCrypto.crypto.subtle.generateKey(
-      xxx,
+      rsaParams,
       false,
       js.Array(KeyUsage.sign)
     ).asInstanceOf[raw.Promise[CryptoKeyPair]]
 
-    key.andThen((ckp:CryptoKeyPair)=>promise.success(ckp),
-      (err: Any)=>promise.failure(err.asInstanceOf[java.lang.Throwable])
-    )
-
     key.andThen((ckp: CryptoKeyPair) => {
       log("~install> created key", ckp)
-      GlobalCrypto.crypto.subtle.exportKey(KeyFormat.jwk, ckp.publicKey) andThen { x: js.Any =>
-        import com.github.marklister.base64.Base64._
-        val pk = x.asInstanceOf[Dictionary[String]]
-        log("exported created key to ", x)
-        val dec = urlDecode(pk("n"))
-        println("~install> decoded:" + dec)
-        val ba = dec.toByteArray
-        log("~install> ba=", ba.asInstanceOf[js.Array[Byte]])
-        val modHex = BigInt(ba).abs.toString(16) //could also publish as xsd:base64Binary
-      val exp = BigInt(urlDecode(pk("e")).toByteArray)
-        println(
-          s"""
-             | <#> cert:modulus "$modHex"^^xsd:hexBinary;
-             |     cert:exponent $exp
-           """.stripMargin)
-      }
+      asTurtle(ckp.publicKey) andThen ( (s: String) => log("~install> created key>",s))
     },
       (e: Any) => log(
         "problem with key creation", e.asInstanceOf[js.Any]
       )
     )
-    promise.future.map((key: CryptoKeyPair) => KeyInfo(key, new js.Date()))
+    key.toFuture.map((key: CryptoKeyPair) => KeyInfo(key, new js.Date()))
   }
+
+  def asTurtle(key: CryptoKey): raw.Promise[String] =
+    GlobalCrypto.crypto.subtle.exportKey(KeyFormat.jwk, key).andThen ((x: js.Any) =>
+    {
+      import com.github.marklister.base64.Base64._
+      val pk = x.asInstanceOf[Dictionary[String]]
+      val ba = pk("n").toByteArray(base64Url)
+      val modHex = BigInt(1,ba).toString(16)
+      val exp = BigInt(pk("e").toByteArray(base64Url))
+      s"""<#> cert:modulus "$modHex"^^xsd:hexBinary;
+          |   cert:exponent $exp""".stripMargin
+    }).asInstanceOf[raw.Promise[String]]
+
 }
