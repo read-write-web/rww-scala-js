@@ -239,6 +239,9 @@ object RequestInit {
   )
 }
 
+/**
+  * see [[https://fetch.spec.whatwg.org/#requestinit RequestInit]] in Fetch API
+  */
 //todo: verify the defaults set here are the actual defaults
 @ScalaJSDefined
 class RequestInit(

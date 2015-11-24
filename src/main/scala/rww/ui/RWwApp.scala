@@ -68,6 +68,7 @@ object RWwApp {
     new RWwApp(dashboardUri.getOrElse(""), proxy.toOption, authEndpoints.toList).run()
   }
 
+/* no need for service workers at present
   val AuthServiceWorker: Future[ServiceWorkerRegistration] = {
     val result = SPromise[ServiceWorkerRegistration]()
     import js.Dynamic.literal
@@ -91,6 +92,7 @@ object RWwApp {
     }
     result.future
   }
+*/
 }
 
 

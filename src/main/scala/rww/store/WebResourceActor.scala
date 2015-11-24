@@ -195,7 +195,8 @@ class WebResourceActor(
 
     val requestInit = literal(
       headers = literal(  "Accept" -> rdfMimeTypes ),
-      requestCache = RequestCache.reload
+      requestCache = RequestCache.reload,
+      credentials = RequestCredentials.include //<- does not work if server's Access-Control-Allow-Origin is set to *
 //      window = null // should work in the future
     ).asInstanceOf[js.Dictionary[js.Any]]
 
