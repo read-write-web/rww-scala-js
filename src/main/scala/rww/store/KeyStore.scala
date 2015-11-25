@@ -165,10 +165,10 @@ object KeyStore {
     GlobalCrypto.crypto.subtle.exportKey(KeyFormat.jwk, key).andThen ((x: js.Any) =>
     {
       import com.github.marklister.base64.Base64._
-      val pk = x.asInstanceOf[Dictionary[String]]
-      val ba = pk("n").toByteArray(base64Url)
+      val rsapk = x.asInstanceOf[org.scalajs.dom.crypto.RSAPublicKey]
+      val ba = rsapk.n.toByteArray(base64Url)
       val modHex = BigInt(1,ba).toString(16)
-      val exp = BigInt(pk("e").toByteArray(base64Url))
+      val exp = BigInt(rsapk.e.toByteArray(base64Url))
       s"""<#> cert:modulus "$modHex"^^xsd:hexBinary;
           |   cert:exponent $exp""".stripMargin
     }).asInstanceOf[raw.Promise[String]]
