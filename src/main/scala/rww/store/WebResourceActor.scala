@@ -72,7 +72,7 @@ class WebResourceActor(
 
   protected
   def forceFetch(base: Rdf#URI, proxiedURL: Rdf#URI, sender: ActorRef): Unit = {
-    import org.scalajs.dom.experimental.fetch
+    import org.scalajs.dom.experimental.Fetch.fetch
 
     def consume(reader: ReadableStreamReader): Promise[Unit] = {
       var data: String = ""

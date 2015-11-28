@@ -85,10 +85,10 @@ object KeyStore {
   // the hacked scalajs-rx-idb to compile
 
   implicit val thing2Writer: legacy.Aliases.W[KeyInfo] = upickle.legacy.Writer[KeyInfo] {
-    case t => upickle.Js.Str("")
+    case t => Js.Unserializable(t.asInstanceOf[js.Object])
   }
   implicit val thing2Reader: legacy.Aliases.R[KeyInfo] = legacy.Reader[KeyInfo] {
-    case Js.Obj(x) => "".asInstanceOf[KeyInfo]
+    case Js.Unserializable(x) => x.asInstanceOf[KeyInfo]
   }
   implicit val scheduler                               = Scheduler.trampoline()
 
