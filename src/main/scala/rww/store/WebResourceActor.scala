@@ -2,7 +2,6 @@ package rww.store
 
 import java.io.StringReader
 import java.net.{URI => jURI}
-import java.nio.ByteBuffer
 
 import akka.actor.{Actor, ActorRef, Props}
 import org.scalajs.dom
@@ -15,11 +14,10 @@ import org.w3.banana.io.{JsonLd, NTriples, RDFReader, Turtle}
 import rww.{Rdf, log}
 
 import scala.concurrent.Future
-import scala.scalajs.js
-import scala.scalajs.js.Dynamic.literal
-import scala.scalajs.js.UndefOr
-import scala.scalajs.js.collection.JSIterator._
 import scala.scalajs.concurrent.JSExecutionContext
+import scala.scalajs.js
+import scala.scalajs.js.UndefOr
+import scala.scalajs.js.dom.experimental.JSIterator._
 import scala.scalajs.js.typedarray.{ArrayBuffer, TypedArrayBuffer, Uint8Array}
 import scala.util.{Failure, Success, Try}
 
@@ -117,8 +115,9 @@ class WebResourceActor(
         if (isSignature(ah))
       } yield {
         //1. calculate signature
-        import JSExecutionContext.Implicits.queue
         import rww.JSFutureOps
+
+        import JSExecutionContext.Implicits.queue
         val keyPromise = KeyStore.keyFuture.toPromise
         keyPromise.andThen { ki: KeyInfo =>
           val ckp: CryptoKeyPair = ki.keyPair
@@ -193,18 +192,20 @@ class WebResourceActor(
 
     }
 
-    val requestInit = literal(
-      headers = literal(  "Accept" -> rdfMimeTypes ),
+    import js.UndefOr.any2undefOrA
+    val requestInit = RequestInit(
+      headers = any2undefOrA(js.Dictionary("Accept" -> rdfMimeTypes ).asInstanceOf[HeadersInit]),
       requestCache = RequestCache.reload,
       credentials = RequestCredentials.include //<- does not work if server's Access-Control-Allow-Origin is set to *
 //      window = null // should work in the future
-    ).asInstanceOf[js.Dictionary[js.Any]]
+    )
 
     log("request init",requestInit)
     val request = new HttpRequest(proxiedURL.toString, requestInit)
-
+    log("request created",request)
     def process(res: HttpResponse, txt: String): Future[Unit] = {
       import org.w3.banana.TryW
+
       import JSExecutionContext.Implicits.queue
 
       val rh = res.headers.get("Content-Type").toOption
@@ -231,13 +232,28 @@ class WebResourceActor(
         }
       }
     }
+
+    //taken from Stream spec
+    def readAllChunks(readableStream: ReadableStream): Promise[String] = {
+      val reader = readableStream.getReader()
+      val buffer = new StringBuilder()
+      def pump(): Promise[StringBuilder] = reader.read().andThen({ chunk: Chunk =>
+        if (chunk.done) buffer
+        else {
+          buffer ++= new String(chunk.value.toArray[Byte], "UTF8")
+          pump()
+        }
+      }).asInstanceOf[Promise[StringBuilder]]
+      pump().andThen({sb: StringBuilder=> sb.toString()}).asInstanceOf[Promise[String]]
+    }
+
     fetch(request) andThen { res: HttpResponse =>
-      log(s"~fetch> ${res.status} <$base> headers:",
+      log(s"~~fetch> ${res.status} <$base> headers:",
         rww.headerToString(res.headers))
 
       // todo: make this asynchronous
       // consume(res.body.getReader(),res.headers.get("Content-Length"))
-      res.text() andThen { txt: String =>
+      readAllChunks(res.body) andThen { txt: String =>
         if (res.ok) {
           process(res, txt)
         } else if (res.status == 401) {

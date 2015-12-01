@@ -1,5 +1,3 @@
-import java.math.BigInteger
-
 import org.scalajs.dom.experimental.Headers
 import org.scalajs.dom.raw
 import org.w3.banana.PointedGraph
@@ -45,7 +43,7 @@ package object rww {
   }
 
   def headerToString(headers: Headers): String = {
-    import scala.scalajs.js.collection.JSIterator._
+    import scala.scalajs.js.dom.experimental.JSIterator._
     val l = for (h <- headers.iterator.toList) yield h(0) + ":" + h.jsSlice(1).mkString(",")
     l.mkString("\n")
   }

@@ -85,10 +85,10 @@ object KeyStore {
   // the hacked scalajs-rx-idb to compile
 
   implicit val thing2Writer: legacy.Aliases.W[KeyInfo] = upickle.legacy.Writer[KeyInfo] {
-    case t => Js.Unserializable(t.asInstanceOf[js.Object])
+    case t => Js.Str("") //<- ignore //todo: Js.Unserializable(t.asInstanceOf[js.Object])
   }
   implicit val thing2Reader: legacy.Aliases.R[KeyInfo] = legacy.Reader[KeyInfo] {
-    case Js.Unserializable(x) => x.asInstanceOf[KeyInfo]
+    case _ => "".asInstanceOf[KeyInfo] //<- ignore
   }
   implicit val scheduler                               = Scheduler.trampoline()
 
@@ -115,7 +115,6 @@ object KeyStore {
         log(s"~~~~> createdKey now adding it to $store", key)
         var add = store.add(List(key))
           .doOnStart(x => log("~~~~~> starting to add", x.asInstanceOf[js.Any]))
-          .doOnComplete(log("~~~~> added key to store", "yes"))
           .doOnCanceled(log("~~~~~> cancelled adding", "yes"))
           .doOnError(err => log("~~~~~> caught error adding key to store", err.asInstanceOf[js.Object]))
         add.asFuture.flatMap {
