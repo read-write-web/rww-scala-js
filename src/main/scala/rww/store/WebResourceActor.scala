@@ -72,12 +72,12 @@ class WebResourceActor(
   def forceFetch(base: Rdf#URI, proxiedURL: Rdf#URI, sender: ActorRef): Unit = {
     import org.scalajs.dom.experimental.Fetch.fetch
 
-    def consume(reader: ReadableStreamReader): Promise[Unit] = {
+    def consume(reader: ReadableStreamReader[Uint8Array]): Promise[Unit] = {
       var data: String = ""
       new Promise[Unit](
         (resolve: js.Function1[Unit, Any], reject: js.Function1[Any, Any]) => {
           def pump(): Unit = {
-            reader.read().andThen { chunk: Chunk =>
+            reader.read().andThen { chunk: Chunk[Uint8Array] =>
               if (chunk.done) {
                 resolve()
                 ()
@@ -234,17 +234,21 @@ class WebResourceActor(
     }
 
     //taken from Stream spec
-    def readAllChunks(readableStream: ReadableStream): Promise[String] = {
+    def readAllChunks(readableStream: ReadableStream[Uint8Array]): Promise[String] = {
       val reader = readableStream.getReader()
-      val buffer = new StringBuilder()
-      def pump(): Promise[StringBuilder] = reader.read().andThen({ chunk: Chunk =>
-        if (chunk.done) buffer
+      val buffer = js.Array[Byte]()
+      def pump(): Promise[String] = reader.read().andThen({ chunk: Chunk[Uint8Array] =>
+        if (chunk.done) new String(buffer.toArray[Byte],"UTF-8")
         else {
-          buffer ++= new String(chunk.value.toArray[Byte], "UTF8")
+          var i = 0
+          while(i < chunk.value.length) {
+            buffer.push(chunk.value.get(i).asInstanceOf[Byte])
+            i = i +1
+          }
           pump()
         }
-      }).asInstanceOf[Promise[StringBuilder]]
-      pump().andThen({sb: StringBuilder=> sb.toString()}).asInstanceOf[Promise[String]]
+      }).asInstanceOf[Promise[String]]
+      pump()
     }
 
     fetch(request) andThen { res: HttpResponse =>
@@ -257,7 +261,7 @@ class WebResourceActor(
         if (res.ok) {
           process(res, txt)
         } else if (res.status == 401) {
-          log("~~fetchListener> intercepted 401", res.url)
+          log("~~~fetchListener> intercepted 401", res.url)
           //              response
           // one cannot just use an old request! so one has to make a new one.
           val newRequest = new HttpRequest(request.url,requestInit)
