@@ -2,50 +2,40 @@ package rww.store
 
 import java.net.{URI => jURI}
 
-import com.github.marklister.base64.Base64
 import com.viagraphs.idb._
 import monifu.concurrent.Scheduler
 import org.scalajs.dom.crypto._
 import org.scalajs.dom.raw
 import rww.log
-import upickle.{Js, legacy}
+import upickle.{legacy, Js}
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Future
 import scala.scalajs.js
-import scala.scalajs.js.Dictionary
 import scala.scalajs.js.Dynamic.literal
+import scala.scalajs.js.UndefOr
+import scala.scalajs.js.annotation.ScalaJSDefined
 
+@ScalaJSDefined
+abstract class KeyInfo extends js.Object {
+  val keyPair: CryptoKeyPair
+  val time: Double
+  val keyId: UndefOr[String]
+  val userId: UndefOr[String]
 
-@js.native
-trait KeyInfo extends js.Object {
-  val keyPair: CryptoKeyPair      = js.native
-  val date   : js.Date            = js.native
-  val keyId  : js.UndefOr[String] = js.native
-  val userId : js.UndefOr[String] = js.native
+  def date() = new js.Date(time)
 }
 
 object KeyInfo {
-  def apply(keyPair: CryptoKeyPair, created: js.Date): KeyInfo =
-    literal(
-      keyPair = keyPair,
-      created = created
-    ).asInstanceOf[KeyInfo]
-
-  def apply(keyPair: CryptoKeyPair, created: js.Date, keyId: String): KeyInfo =
-    literal(
-      keyPair = keyPair,
-      keyId = keyId,
-      created = created
-    ).asInstanceOf[KeyInfo]
-
-  def apply(keyPair: CryptoKeyPair, created: js.Date, keyId: String, userId: String): KeyInfo =
-    literal(
-      keyPair = keyPair,
-      keyId = keyId,
-      userId = userId,
-      created = created
-    ).asInstanceOf[KeyInfo]
-
+  def apply(_keyPair: CryptoKeyPair,
+            _time: Double = new js.Date().getTime(),
+            _keyId: UndefOr[String] = js.undefined,
+            _userId: UndefOr[String] = js.undefined
+           ): KeyInfo = new KeyInfo {
+    val keyPair = _keyPair
+    val time = _time
+    val keyId = _keyId
+    val userId = _userId
+  }
 }
 
 /**
@@ -90,7 +80,7 @@ object KeyStore {
   implicit val thing2Reader: legacy.Aliases.R[KeyInfo] = legacy.Reader[KeyInfo] {
     case _ => "".asInstanceOf[KeyInfo] //<- ignore
   }
-  implicit val scheduler                               = Scheduler.trampoline()
+  implicit val scheduler = Scheduler.trampoline()
 
   val db = IndexedDb(
     new OpenDb(dbName, Some { (db, e) =>
@@ -101,18 +91,12 @@ object KeyStore {
     }
     ) with Logging)
 
-  val store = db.openStore[Int, KeyInfo](storeName)(
-    legacy.IntRW,
-    legacy.IntRW,
-    ValidKey.IntOk,
-    thing2Writer,
-    thing2Reader
-  )
+  val store = db.openStore[Int, KeyInfo](storeName)
 
   val keyFuture: Future[KeyInfo] = {
     store.get(List(1)).asFuture.flatMap{
       case None => createKey.flatMap((key: KeyInfo) => {
-        log(s"~~~~> createdKey now adding it to $store", key)
+        log(s"~~~~> createdKey now adding it to $store",key.asInstanceOf[js.Object])
         var add = store.add(List(key))
           .doOnStart(x => log("~~~~~> starting to add", x.asInstanceOf[js.Any]))
           .doOnCanceled(log("~~~~~> cancelled adding", "yes"))
@@ -157,7 +141,7 @@ object KeyStore {
         "problem with key creation", e.asInstanceOf[js.Any]
       )
     )
-    key.toFuture.map((key: CryptoKeyPair) => KeyInfo(key, new js.Date()))
+    key.toFuture.map((key: CryptoKeyPair) => KeyInfo(key))
   }
 
   def asTurtle(key: CryptoKey): raw.Promise[String] =

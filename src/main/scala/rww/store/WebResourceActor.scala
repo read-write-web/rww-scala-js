@@ -124,11 +124,12 @@ class WebResourceActor(
 
           val url = new java.net.URI(request.url)
           val method = request.method.toString.toLowerCase
-          val path = url.getPath + {if(url.getQuery==null)""else "?"+url.getQuery}
+          val path = url.getPath + { if (url.getQuery == null) "" else "?" + url.getQuery }
           val host = url.getAuthority
           val now = new js.Date().toISOString()
           val nr = new HttpRequest(request)
           nr.headers.set("Signature-Date",now)
+          log("~sign KeyInfo>",ki)
           val sigText =
             s"(request-target): $method $path\n"+
             s"host: $host\n"+

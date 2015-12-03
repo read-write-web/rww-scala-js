@@ -1,6 +1,7 @@
 package rww.auth
 
 import org.scalajs.dom.crypto.{GlobalCrypto, _}
+import org.scalajs.dom.experimental
 import org.scalajs.dom.experimental.{FetchEvent, _}
 import org.scalajs.dom.raw.{Event, Promise, ServiceWorker}
 import rww.log
@@ -21,9 +22,10 @@ object ServiceWorkerAuth {
 
   @JSExport
   def run(thiz: ServiceWorker): Unit = {
+    import experimental.ServiceWorker._
     //should also be able to access thiz as js.Dynamic.global
-    thiz.addEventListener("install",installListener _)
-    thiz.addEventListener("fetch",fetchListener _)
+    thiz.addInstallListener(installListener _)
+    thiz.addFetchListener(fetchListener _)
   }
 
   def installListener(e: Event) = {
