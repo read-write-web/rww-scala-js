@@ -59,7 +59,7 @@ object RWwScalaJS extends Build {
         "com.github.marklister" %%% "base64" % "0.2.0",
         "com.github.japgolly.scalajs-react" %%% "core" % "0.10.0",
         //https://github.com/viagraphs/scalajs-rx-idb
-        "com.viagraphs" %%% "scalajs-rx-idb" % "0.0.8-SNAPSHOT",
+        "com.viagraphs" %%% "scalajs-rx-idb" % "0.0.8-lean-SNAPSHOT",
 //      "com.github.japgolly.scalajs-react" %%% "test" % "0.9.0" % "test",
         "com.github.japgolly.scalajs-react" %%% "extra" % "0.10.0",
         "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.10.0",
