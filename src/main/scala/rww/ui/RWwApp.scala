@@ -61,7 +61,7 @@ object RWwApp {
 //        && origin.getScheme == p.getScheme)
          dev_proxySrvc
       else js.undefined
-    ).orElse(proxySrvc)
+    ).orElse(proxySrvc).map(new jURI(_))
 
     println("proxy="+proxy.toOption)
 
@@ -98,7 +98,7 @@ object RWwApp {
 
 
 class RWwApp( startURI: String,
-              proxyService: Option[String],
+              proxyService: Option[jURI],
               authEndpoints: List[jURI]) {
 
   val baseUrl = BaseUrl(scalajs.dom.window.location.href.takeWhile(_ != '#'))
@@ -147,14 +147,21 @@ class RWwApp( startURI: String,
   }
 
   //todo: should the method return \/[URI,URI] to indicate if a proxy was used?
+  /**
+    * currently this assumes that the server that has a proxy service is itself a SoLiD server,
+    * and so that urls from that server do not require to go through a proxy.
+    * todo: by first fetching directly from the resource the client could build a list of
+    *       servers where a proxy is not required.
+    * @param uri
+    * @return the proxy url for a given the given url
+    */
   def proxy(uri: Rdf#URI): Rdf#URI = {
-    proxyService.map { proxyUri =>
-      val juri = new jURI(uri.toString)
-      if (juri.getScheme == origin.getScheme
-        && juri.getAuthority == origin.getAuthority
-        && juri.getPort == origin.getPort)
+    proxyService.map { proxyUrl =>
+      if (proxyUrl.getScheme == uri.getScheme
+        && proxyUrl.getAuthority == uri.getAuthority
+        && proxyUrl.getPort == uri.getPort)
         uri
-      else rww.Rdf.ops.URI(proxyUri + uri.toString)
+      else rww.Rdf.ops.URI(proxyUrl.toString + uri.toString)
     } getOrElse uri
   }
 
