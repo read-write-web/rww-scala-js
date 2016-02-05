@@ -71,15 +71,7 @@ object KeyStore {
   //
   //  }
 
-  // these two implicits don't actually ever get used, but they are needed to allow
-  // the hacked scalajs-rx-idb to compile
 
-  implicit val thing2Writer: legacy.Aliases.W[KeyInfo] = upickle.legacy.Writer[KeyInfo] {
-    case t => Js.Str("") //<- ignore //todo: Js.Unserializable(t.asInstanceOf[js.Object])
-  }
-  implicit val thing2Reader: legacy.Aliases.R[KeyInfo] = legacy.Reader[KeyInfo] {
-    case _ => "".asInstanceOf[KeyInfo] //<- ignore
-  }
   implicit val scheduler = Scheduler.trampoline()
 
   val db = IndexedDb(
