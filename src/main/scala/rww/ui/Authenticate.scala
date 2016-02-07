@@ -5,12 +5,14 @@ import java.net.{URI => jURI}
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.OnUnmount
 import japgolly.scalajs.react.vdom.prefix_<^._
-import scalacss.ScalaCssReact._
-
+import ScalazReact._
+import rww.ontology.Person
 import rww.store._
 import rww.ui.foaf.WProps
 import rww.ui.util.RxStateObserver
 import spatutorial.client.components.GlobalStyles
+
+import scalacss.ScalaCssReact._
 
 /**
  * Created by hjs on 09/06/2015.
@@ -24,40 +26,44 @@ object Authenticate {
 
   class Backend(t: BackendScope[WProps[List[jURI]], Option[RequestState]])
     extends RxStateObserver[RequestState](t)  {
-    def auth(e: ReactEventI) = CallbackTo {
-      unmount
-      t.props.map{p=>
-        observeAndSetState(Some(fetch(p,UnlessCached)))
-        e.preventDefaultCB
-      }
-    }.void
+
+    def auth(e: ReactEventI): Callback = {
+      for {
+        _ <- e.preventDefaultCB
+        p <- t.props
+      } yield observeAndSetState(Some(fetch(p, UnlessCached)))
+    }
   }
 
   val component = ReactComponentB[WProps[List[jURI]]]("Authenticate")
-    .initialState_P[Option[RequestState]](p=>Some(fetch(p,CacheOnly)()))
+    .initialState[Option[RequestState]](None)
     .backend(new Backend(_))
-    .render( $ =>
-    <.span()(
+    .renderS { ($,s) =>
+      println("~~~Authenticate.render with p.state=" + $.state)
+      <.span()(
       <.h3("Select WebID"),
       <.form(^.onSubmit ==> $.backend.auth)(
         <.input(^.`type` := "submit", ^.value := "WebID Auth", bss.buttonXS)
       ),
-      <.p($.state.get match {
-        //S here is always a Some
-        case ok: Ok => {
-          ok.header("User").headOption.map { id =>
-            val newId = URI(id)
-            if ($.props.userConfig().id != newId)
-              $.props.userConfig() = $.props.userConfig().copy(id = Some(newId))
-            <.span("authenticated as ", <.a($.props.ctl.setOnClick(Component.uri(newId)))(id))
-          }.getOrElse(<.span("could not authenticate"))
-        }
-        case HttpError(_,code, _, _) => <.span("Could not authenticate. Returned with " + code)
-        case UnRequested(_) => <.span()
-        case _ => <.span("Authenticating...")
-      })
-    )
-    )
+      $.state.map { requestState =>
+        <.p(requestState match {
+          //S here is always a Some
+          case ok: Ok => {
+            println("~~~>Ok:" + ok)
+            ok.header("User").headOption.map { id =>
+              val newId = URI(id)
+              if ($.props.userConfig().id != newId)
+                $.props.userConfig() = $.props.userConfig().copy(id = Some(newId))
+              <.span("authenticated as ", <.a($.props.ctl.setOnClick(Component.uri(newId)))(id))
+            }.getOrElse(<.span("could not authenticate"))
+          }
+          case HttpError(_, code, _, _) => <.span("Could not authenticate. Returned with " + code)
+          case UnRequested(_) => <.span()
+          case _ => <.span("Authenticating...")
+        })
+      }
+      )
+    }
     .configure(OnUnmount.install)
     .build
 

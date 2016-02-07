@@ -17,7 +17,7 @@ object Dashboard {
     // create dummy data for the chart
     <.div(
       // header, MessageOfTheDay and chart components
-      <.h2("Dashboard"),
+      <.h2("Enter your WebID"),
       UBox(P.copy(about=P.about._1)),
       Authenticate(P.copy(P.about._2))
     )

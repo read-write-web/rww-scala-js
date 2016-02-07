@@ -7,7 +7,6 @@ import monifu.concurrent.Scheduler
 import org.scalajs.dom.crypto._
 import org.scalajs.dom.raw
 import rww.log
-import upickle.{legacy, Js}
 
 import scala.concurrent.Future
 import scala.scalajs.js
@@ -38,12 +37,26 @@ object KeyInfo {
   }
 }
 
+@ScalaJSDefined
+abstract class WebIdInfo extends js.Object {
+  val webid: String
+  val verified: Boolean
+}
+
+object WebIdInfo {
+  def apply(_webid: String, _verified: Boolean): WebIdInfo = new WebIdInfo {
+    val verified: Boolean = _verified
+    val webid   : String  = _webid
+  }
+}
+
 /**
   * Created by hjs on 13/11/2015.
   */
 object KeyStore {
-  val dbName    = "rww.store"
-  val storeName = dbName + ".keyInfo"
+  val dbName = "rww.store"
+  val keyInfoStoreName = dbName+".keyInfo"
+  val webidInfoStoreName = dbName+".webidInfo"
 
   //  var keyPromise: Promise[KeyInfo] = _
   //  var db =
@@ -76,28 +89,52 @@ object KeyStore {
 
   val db = IndexedDb(
     new OpenDb(dbName, Some { (db, e) =>
-      val store = db.createObjectStore(storeName, literal("autoIncrement" -> true))
+      val store = db.createObjectStore(keyInfoStoreName, literal("autoIncrement" -> true))
       log("~~~~> created store", store)
       //      store.createIndex("testIndex", "a")
       ()
     }
     ) with Logging)
 
-  val store = db.openStore[Int, KeyInfo](storeName)
+  val keyInfoStore = db.openStore[Int, KeyInfo](keyInfoStoreName)
+
+  val webIdInfoStore = db.openStore[Int, WebIdInfo](webidInfoStoreName)
 
   val keyFuture: Future[KeyInfo] = {
-    store.get(List(1)).asFuture.flatMap{
-      case None => createKey.flatMap((key: KeyInfo) => {
-        log(s"~~~~> createdKey now adding it to $store",key.asInstanceOf[js.Object])
-        var add = store.add(List(key))
-          .doOnStart(x => log("~~~~~> starting to add", x.asInstanceOf[js.Any]))
-          .doOnCanceled(log("~~~~~> cancelled adding", "yes"))
-          .doOnError(err => log("~~~~~> caught error adding key to store", err.asInstanceOf[js.Object]))
-        add.asFuture.flatMap {
-          case Some(keyinfo) => Future.successful(keyinfo._2)
-          case None => Future.failed(new Throwable("could not create key"))
-        }
-      })
+    keyInfoStore.get(List(1)).asFuture.flatMap{
+      case None => {
+        // we try to store the key in the preferred storage space of the user
+        // for a key we could also just store it anywhere in a distributed hash table as a fallback
+        // as it does not actually matter where the key is located for privacy reasons.
+        // the client actually just needs to keep track of the WebID associated with the key
+
+        //1. find storage space by searching for ws:storage link from webid
+
+
+        //2. find if there is storage space in that domain if so use it
+        // this can be done by directly doing a GET on the subfolder finding the acl
+        // the acl should give that agent rw access
+        // this of course means that there has to be other ways of authenticating
+
+
+        //3. if the above exists then create a key
+        createKey.flatMap((key: KeyInfo) => {
+          log(s"~~~~> createdKey now adding it to $keyInfoStore",key.asInstanceOf[js.Object])
+          var add = keyInfoStore.add(List(key))
+            .doOnStart(x => log("~~~~~> starting to add", x.asInstanceOf[js.Any]))
+            .doOnCanceled(log("~~~~~> cancelled adding", "yes"))
+            .doOnError(err => log("~~~~~> caught error adding key to store", err.asInstanceOf[js.Object]))
+          add.asFuture.flatMap {
+            case Some(keyinfo) => Future.successful(keyinfo._2)
+            case None => Future.failed(new Throwable("could not create key"))
+          }
+        })
+        //4.  save the public key in a the container using a Slug
+
+        //5. make sure the acl makes the key world readable
+        // this is not necessary but it helps authenticate on different apps
+
+      }
       case Some(keyinfo) => {
         asTurtle(keyinfo._2.keyPair.publicKey).andThen((s:String)=>
           log("keystore> retrieved public key",s)

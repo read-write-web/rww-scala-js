@@ -49,20 +49,23 @@ object RWwScalaJS extends Build {
     .settings(
       name := "rww-scala-js",
       jsDependencies ++= Seq(
-        "org.webjars.npm" % "react"     % "0.14.0" / "react-with-addons.js" commonJSName "React"    minified "react-with-addons.min.js",
-        "org.webjars.npm" % "react-dom" % "0.14.0" / "react-dom.js"         commonJSName "ReactDOM" minified "react-dom.min.js" dependsOn "react-with-addons.js"
+        "org.webjars.bower" % "react"     % "0.14.3" / "react-with-addons.js"
+          minified "react-with-addons.min.js"
+          commonJSName "React",
+        "org.webjars.bower" % "react" % "0.14.3" / "react-dom.js"
+          commonJSName "ReactDOM" minified "react-dom.min.js" dependsOn "react-with-addons.js"
       ),
       libraryDependencies ++= Seq(
         "org.scala-js" %%% "scalajs-dom" % "0.9.0-SNAPSHOT",
         //repo: https://github.com/marklister/base64
         //http://central.maven.org/maven2/com/github/marklister/base64_sjs0.6_2.11/0.1.1/
         "com.github.marklister" %%% "base64" % "0.2.0",
-        "com.github.japgolly.scalajs-react" %%% "core" % "0.10.0",
+        "com.github.japgolly.scalajs-react" %%% "core" % "0.10.4",
         //https://github.com/viagraphs/scalajs-rx-idb
         "com.viagraphs" %%% "scalajs-rx-idb" % "0.0.8-lean-SNAPSHOT",
 //      "com.github.japgolly.scalajs-react" %%% "test" % "0.9.0" % "test",
-        "com.github.japgolly.scalajs-react" %%% "extra" % "0.10.0",
-        "com.github.japgolly.scalajs-react" %%% "ext-scalaz71" % "0.10.0",
+        "com.github.japgolly.scalajs-react" %%% "extra" % "0.10.4",
+        "com.github.japgolly.scalajs-react" %%% "ext-scalaz72" % "0.10.4",
         "com.github.japgolly.scalacss" %%% "core" % "0.3.1",
         "com.github.japgolly.scalacss" %%% "ext-react" % "0.3.1",
         "com.lihaoyi" %%% "scalarx" % "0.2.8",

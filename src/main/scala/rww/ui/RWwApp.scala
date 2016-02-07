@@ -161,6 +161,9 @@ class RWwApp( startURI: String,
         && proxyUrl.getAuthority == uri.getAuthority
         && proxyUrl.getPort == uri.getPort)
         uri
+      else if (authEndpoints.contains(new jURI(uri.toString))) {
+        uri
+      }
       else rww.Rdf.ops.URI(proxyUrl.toString + uri.toString)
     } getOrElse uri
   }

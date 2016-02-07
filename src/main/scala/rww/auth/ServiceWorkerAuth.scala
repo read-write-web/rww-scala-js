@@ -1,21 +1,18 @@
 package rww.auth
 
-import org.scalajs.dom.crypto.{GlobalCrypto, _}
 import org.scalajs.dom.experimental
-import org.scalajs.dom.experimental.{FetchEvent, _}
-import org.scalajs.dom.raw.{Event, Promise, ServiceWorker}
+import org.scalajs.dom.experimental.FetchEvent
+import org.scalajs.dom.raw.{Event, ServiceWorker}
 import rww.log
 
-import scala.scalajs.js
 import scala.scalajs.js.Dynamic.{global => g}
 import scala.scalajs.js.annotation.JSExport
-import scala.scalajs.js.typedarray.{Uint16Array, Uint8Array}
-import scala.util.control.NonFatal
 
 /**
- * Created by hjs on 29/10/2015.
+  * Created by hjs on 29/10/2015.
   * https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
- */
+  *
+  */
 @JSExport
 object ServiceWorkerAuth {
 
